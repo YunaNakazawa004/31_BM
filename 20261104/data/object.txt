@@ -1,0 +1,30 @@
+#---------------------------------------
+# オブジェクト配置ファイル [ object.txt ] 
+# Author : Nakazawa Yuna
+#---------------------------------------
+
+SET_SCRIPT
+
+#---------------------------------------
+# フィールド ( 地面 / 壁 )
+#---------------------------------------
+FIELDSET
+	FIELDTEXTURE = data\\TEXTURE\\sand.jpg
+	POS = 0.0 0.0 0.0
+	SIZE = 1200.0 400.0 1200.0
+	BLOCK = 20.0 20.0
+END_FIELDSET
+
+#---------------------------------------
+# プレイヤー
+#---------------------------------------
+PLAYERSET
+	MODELFILE = data\\MODEL\\spikeball000.x
+	POS = 0.0 0.0 0.0
+	RADIUS = 20.0
+	JUMP = 9.0
+	SPEED = 0.002
+	INERTIA = 0.01
+END_PLAYERSET
+
+END_SCRIPT		# 消さない
