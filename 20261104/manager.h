@@ -34,6 +34,7 @@ class CTexture;
 class CXModel;
 class CEffectBatching;
 class CPlayer;
+class CWind;
 class CTcpClient;
 
 //************************************************************************
@@ -63,6 +64,7 @@ public:
 	static CXModel* GetXModel(void) { return m_pXModel; }
 	static CEffectBatching* GetEffectBatching(void) { return m_pEffectBatching; }
 	static CPlayer* GetPlayer(void) { return m_pPlayer; }
+	static CWind* GetWind(void) { return m_pWind; }
 	static CTcpClient* GetTcpClient(void) { return m_pTcpClient; }
 
 	static int GetFPS(void) { return m_nCountFPS; }
@@ -94,6 +96,7 @@ private:
 	static CXModel* m_pXModel;						// モデル管理のインスタンス
 	static CEffectBatching* m_pEffectBatching;		// バッチ描画エフェクトのインスタンス
 	static CPlayer* m_pPlayer;						// プレイヤーのインスタンス
+	static CWind* m_pWind;							// 風のインスタンス
 	static CTcpClient* m_pTcpClient;				// TCP送受信のインスタンス
 
 	static int m_nCountFPS;			// FPSカウンター

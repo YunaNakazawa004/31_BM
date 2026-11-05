@@ -25,6 +25,7 @@
 #include "objectBillboard.h"
 #include "number.h"
 #include "player.h"
+#include "wind.h"
 #include "meshwallM.h"
 #include "wallMM.h"
 #include "tcp_client.h"
@@ -51,6 +52,7 @@ CTexture* CManager::m_pTexture = nullptr;				// テクスチャのインスタンス
 CXModel* CManager::m_pXModel = nullptr;					// モデル管理のインスタンス
 CEffectBatching* CManager::m_pEffectBatching = nullptr;	// バッチ描画エフェクトのインスタンス
 CPlayer* CManager::m_pPlayer = nullptr;					// プレイヤーのインスタンス
+CWind* CManager::m_pWind = nullptr;						// 風のインスタンス
 CTcpClient* CManager::m_pTcpClient = nullptr;			// TCP送受信のインスタンス
 int CManager::m_nCountFPS = 0;							// FPSカウンター
 bool CManager::m_bPause = false;						// ポーズするかしないか
@@ -77,6 +79,7 @@ CManager::CManager()
 	m_pXModel = nullptr;
 	m_pEffectBatching = nullptr;
 	m_pPlayer = nullptr;
+	m_pWind = nullptr;
 	m_pTcpClient = nullptr;
 	m_nCountFPS = 0;
 	m_bPause = false;
@@ -184,6 +187,11 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 			return E_FAIL;
 		}
+
+		if (m_pCamera != nullptr)
+		{// NULLチェック
+			m_pCamera->SetType(CCamera::TYPE_SOLO);
+		}
 	}
 
 	// ライトの生成
@@ -279,6 +287,19 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 			return E_FAIL;
 		}
 	}
+	
+	// 風の生成
+	if (m_pWind == nullptr)
+	{// NULLチェック
+		m_pWind = dynamic_cast<CWind*>(CFile::SetObject("data\\object.txt", CObject::TYPE_WIND));
+
+		if (m_pWind == nullptr)
+		{// NULLチェック
+			OutputDebugStringA("! ! ! 風の生成に失敗しました ! ! !\n");
+
+			return E_FAIL;
+		}
+	}
 
 	// FPSカウンタを初期化
 	m_nCountFPS = 0;
@@ -297,6 +318,7 @@ void CManager::Uninit(void)
 
 	// オブジェクトのモデルを破棄
 	CEffectX::Unload();
+	CWind::Unload();
 	CPlayer::Unload();
 
 	// オブジェクトのテクスチャを破棄
@@ -306,6 +328,12 @@ void CManager::Uninit(void)
 	CEffect3D::Unload();
 	CEffect2D::Unload();
 
+	// 風の破棄
+	if (m_pWind != nullptr)
+	{// NULLチェック
+		m_pWind = nullptr;
+	}
+	
 	// プレイヤーの破棄
 	if (m_pPlayer != nullptr)
 	{// NULLチェック
@@ -569,9 +597,15 @@ void CManager::Reset(void)
 	m_pEffectBatching->Reset();
 
 	m_pPlayer = nullptr;
+	m_pWind = nullptr;
 
 	// ポーズを解除
 	m_bPause = false;
+
+	if (m_pCamera != nullptr)
+	{// NULLチェック
+		m_pCamera->SetType(CCamera::TYPE_SOLO);
+	}
 
 	// フィールドの生成
 	CFile::SetObject("data\\object.txt", CObject::TYPE_FIELD);
@@ -584,6 +618,17 @@ void CManager::Reset(void)
 		if (m_pPlayer == nullptr)
 		{// NULLチェック
 			OutputDebugStringA("! ! ! プレイヤーの生成に失敗しました ! ! !\n");
+		}
+	}
+
+	// 風の生成
+	if (m_pWind == nullptr)
+	{// NULLチェック
+		m_pWind = dynamic_cast<CWind*>(CFile::SetObject("data\\object.txt", CObject::TYPE_WIND));
+
+		if (m_pWind == nullptr)
+		{// NULLチェック
+			OutputDebugStringA("! ! ! 風の生成に失敗しました ! ! !\n");
 		}
 	}
 }

@@ -57,19 +57,12 @@ public:
 		TYPE_PARTICLE2D,		// パーティクル2D
 		TYPE_PARTICLE3D,		// パーティクル3D
 		TYPE_PLAYER,			// プレイヤー
-		TYPE_BALL,				// ボール
-		TYPE_FRAME,				// フレーム
+		TYPE_WIND,				// 風
 		TYPE_FIELD,				// 地面
 		TYPE_WALL,				// 壁
 		TYPE_MESHWALL,			// メッシュウォール
 		TYPE_MESHRING,			// メッシュリング
 		TYPE_MESHORBIT,			// メッシュオービット
-		TYPE_ARROW,				// 矢印
-		TYPE_BALLOON,			// 風船
-		TYPE_ITEM,				// アイテム
-		TYPE_FAN,				// ファン
-		TYPE_SPEAKER,			// スピーカー
-		TYPE_BACKLIGHT,			// 背景光
 		TYPE_LINE,				// 線
 		TYPE_SCORE,				// スコア
 		TYPE_RANKINGSCORE,		// ランキングスコア

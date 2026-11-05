@@ -16,6 +16,7 @@
 #include "debugproc.h"
 
 #include "camera.h"
+#include "wind.h"
 #include "line.h"
 #include "wallMM.h"
 #include "meshwallM.h"
@@ -174,7 +175,7 @@ HRESULT CPlayer::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJ
 	// ƒvƒŒƒCƒ„[‚Ì‰Šú‰»
 	m_posOld = DEFAULT_VECTOR3;
 	m_move = DEFAULT_VECTOR3;
-	m_rotDest = DEFAULT_VECTOR3;
+	m_rotDest = D3DXVECTOR3(0.0f, D3DX_PI, 0.0f);
 	m_rotOld = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
 	m_bJump = false;
 	m_fJumpHeight = fJump;
@@ -194,6 +195,7 @@ HRESULT CPlayer::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJ
 	scale.y = m_fRadius / DEFAULT_SIZE;
 	scale.z = m_fRadius / DEFAULT_SIZE;
 	SetScale(scale);
+	SetRotation(D3DXVECTOR3(0.0f, D3DX_PI, 0.0f));
 
 	return S_OK;
 }
@@ -254,7 +256,7 @@ void CPlayer::Update(void)
 
 #ifdef _DEBUG
 	// ’l‚Ì”÷’²®
-	SubControll();
+	//SubControll();
 #endif
 
 	if (m_bJump == false && m_bCharge == false)
@@ -374,6 +376,9 @@ void CPlayer::Update(void)
 	// ƒƒbƒVƒ…ƒEƒH[ƒ‹‚Æ‚Ì“–‚½‚è”»’è
 	CWallMM::CollisionAll(&pos, &m_posOld, m_fRadius);
 
+	// •—‚Ì‰e‹¿
+	CManager::GetWind()->WindAffect(&pos, &m_vecAxis, &m_rotDest, &m_fValueRot);
+
 	// XZ•ûŒü‚ÌˆÚ“®—Ê
 	D3DXVECTOR2 move = D3DXVECTOR2(m_move.x, m_move.z);
 
@@ -436,9 +441,9 @@ void CPlayer::Update(void)
 	pDebug->Print("‰ñ“]Ž² : ( %f %f %f )\n", m_vecAxis.x, m_vecAxis.y, m_vecAxis.z);
 	pDebug->Print("‰ñ“]Šp : ( %f )\n", m_fValueRot);
 	pDebug->Print("ˆÚ“®—Ê : ( %f )\n", MOVEMENT);
-	pDebug->Print("”¼Œa [ © / ¨ ] : ( %f )\n", m_fRadius);
-	pDebug->Print("‰ñ“]‘¬“x [ ª / « ] : ( %f )\n", SPEED);
-	pDebug->Print("‰ñ“]Œ¸Š [ Y / H ] : ( %f )\n", SPEED_INERTIA);
+	pDebug->Print("”¼Œa : ( %f )\n", m_fRadius);
+	pDebug->Print("‰ñ“]‘¬“x : ( %f )\n", SPEED);
+	pDebug->Print("‰ñ“]Œ¸Š : ( %f )\n", SPEED_INERTIA);
 
 #ifdef _DEBUG
 	// ƒfƒoƒbƒOƒ‰ƒCƒ“
@@ -472,6 +477,7 @@ void CPlayer::Draw(void)
 	// •`‰æˆ—
 	CObjectX::DrawShadow(mtxWorld, DEFAULT_VECTOR3, D3DXVECTOR3(0.0f, 1.0f, 0.0f));
 
+	// ’¸“_–@ü³‹K‰»‚ðƒIƒt
 	pDevice->SetRenderState(D3DRS_NORMALIZENORMALS, FALSE);
 }
 

@@ -181,6 +181,7 @@
     <ClCompile Include="tcp_client.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="wallMM.cpp" />
+    <ClCompile Include="wind.cpp" />
     <ClCompile Include="Xmodel.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -220,6 +221,7 @@
     <ClInclude Include="tcp_client.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="wallMM.h" />
+    <ClInclude Include="wind.h" />
     <ClInclude Include="Xmodel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

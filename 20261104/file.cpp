@@ -8,6 +8,7 @@
 
 #include "manager.h"
 #include "player.h"
+#include "wind.h"
 #include "field.h"
 #include "wallMM.h"
 
@@ -175,6 +176,60 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 				{// プレイヤー設定を終わる
 					CPlayer::Load(pModelFile.c_str());
 					pObject = CPlayer::Create(pos, fRadius, fJump, fSpeed, fInertia);
+
+					continue;
+				}
+			}
+			
+			if (line.find("WINDSET") != std::string::npos && type == CObject::TYPE_WIND)
+			{// 風を設定
+				std::string pModelFile = "";			// モデルファイル名
+				D3DXVECTOR3 pos = DEFAULT_VECTOR3;		// 初期位置
+				D3DXVECTOR3 vec = DEFAULT_VECTOR3;		// 風の向き
+				float fStrength = 0.0f;					// 強さ
+
+				file >> line;					// 次の文字
+
+				if (line.find("MODELFILE") != std::string::npos)
+				{// モデルファイル
+					file >> line;				// =
+					file >> pModelFile;			// モデルファイル名
+
+					file >> line;				// 次の文字
+				}
+				
+				if (line.find("POS") != std::string::npos)
+				{// 初期位置
+					file >> line;				// =
+					file >> pos.x;				// 位置
+					file >> pos.y;				// 位置
+					file >> pos.z;				// 位置
+
+					file >> line;				// 次の文字
+				}
+				
+				if (line.find("VEC") != std::string::npos)
+				{// 風の向き
+					file >> line;				// =
+					file >> vec.x;				// 風の向き
+					file >> vec.y;				// 風の向き
+					file >> vec.z;				// 風の向き
+
+					file >> line;				// 次の文字
+				}
+
+				if (line.find("STRENGTH") != std::string::npos)
+				{// 強さ
+					file >> line;				// =
+					file >> fStrength;			// 強さ
+
+					file >> line;				// 次の文字
+				}
+
+				if (line.find("END_WINDSET") != std::string::npos)
+				{// 風設定を終わる
+					CWind::Load(pModelFile.c_str());
+					pObject = CWind::Create(pos, vec, fStrength);
 
 					continue;
 				}

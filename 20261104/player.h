@@ -35,7 +35,7 @@ public:
 	}STATE;
 
 	CPlayer(const int nPriority = PRIORITY_4);
-	virtual ~CPlayer();
+	~CPlayer();
 
 	static HRESULT Load(const char* pFilename);
 	static void Unload(void);
