@@ -216,12 +216,14 @@ void CWind::Update(void)
 	// 角度を慣性ありで加算
 	rot.y += (m_rotDest.y - rot.y) * 0.1f;
 
-	// 位置/向きを適用
-	SetPosition(pos);
+	// 向きを適用
 	SetRotation(rot);
 
 	// カメラ内にいるかどうか判定
 	bool bInside = CManager::GetCamera()->IsInside(pos, 0.0f);
+
+	// 位置を適用
+	SetPosition(pos);
 }
 
 //========================================================================
@@ -252,6 +254,8 @@ void CWind::WindAffect(D3DXVECTOR3* pPos, D3DXVECTOR3* pVecAxis, D3DXVECTOR3* pR
 	D3DXVECTOR3 distVec = GetPosition() - *pPos;
 	float fWindAngle = atan2f(m_vec.x, m_vec.z);
 	float fDistAngle = atan2f(distVec.x, distVec.z);
+
+	// 角度の計算
 	CorrectAngle(&fWindAngle, fWindAngle - fDistAngle);
 	float fSumAngle = (fWindAngle + fDistAngle) / 2.0f;
 	CorrectAngle(&fSumAngle, fSumAngle - pRotDest->y);

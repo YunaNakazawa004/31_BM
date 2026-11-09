@@ -195,12 +195,12 @@ HRESULT CPlayer::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJ
 	// 風の生成
 	if (m_pWindLeft == nullptr)
 	{// NULLチェック
-		m_pWindLeft = CWind::Create(D3DXVECTOR3(pos.x - 200.0f, pos.y, pos.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 2.0f, 0.4f);
+		m_pWindLeft = CWind::Create(D3DXVECTOR3(pos.x - 200.0f, pos.y, pos.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 3.0f, 0.4f);
 	}
 
 	if (m_pWindRight == nullptr)
 	{// NULLチェック
-		m_pWindRight = CWind::Create(D3DXVECTOR3(pos.x + 200.0f, pos.y, pos.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 2.0f, 0.4f);
+		m_pWindRight = CWind::Create(D3DXVECTOR3(pos.x + 200.0f, pos.y, pos.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 3.0f, 0.4f);
 	}
 
 	D3DXVECTOR3 scale = CPlayer::GetScale();
