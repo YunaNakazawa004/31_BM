@@ -30,6 +30,7 @@
 #define COLOR_MAGENTA		(D3DXCOLOR(1.0f,0.0f,1.0f,1.0f))				// マゼンタ
 #define COLOR_VIOLET		(D3DXCOLOR(0.933f,0.509f,0.933f,1.0f))			// 紫
 #define COLOR_ORANGE		(D3DXCOLOR(1.0f,0.647f,0.0f,1.0f))				// 橙
+#define COLOR_BEIGE			(D3DXCOLOR(0.76f,0.647f,0.0f,1.0f))				// ベージュ
 #define COLOR_LIMEGREEN		(D3DXCOLOR(0.0f,1.0f,0.0f,1.0f))				// ライムグリーン
 #define COLOR_SKYBLUE		(D3DXCOLOR(0.529f,0.807f,0.921f,1.0f))			// 空色
 #define COLOR_HISUI			(D3DXCOLOR(0.219f,0.705f,0.545f,1.0f))			// 翡翠色

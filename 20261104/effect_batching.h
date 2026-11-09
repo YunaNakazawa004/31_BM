@@ -38,8 +38,8 @@ public:
 
 	void ShadowCalc(D3DXMATRIX matrix, const float fRadius);
 
-	void Set(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const float fSpeed, const bool bSpeedInertia, const bool bGravity,
-		const int nLife, const float fRadius, const float fAddRadius, const float fMinusAlpha,
+	void Set(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const float fSpeed, const float fSpeedInertia, const float fGravity,
+		const float fBounce, const int nLife, const float fRadius, const float fAddRadius, const float fMinusAlpha,
 		const D3DXCOLOR col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), const bool bShadow = false, const bool bHoming = false,
 		CObject* HomingObj = nullptr, D3DXVECTOR3 HomingPos = DEFAULT_VECTOR3, const float fSpeedHoming = 0.0f);
 
@@ -59,8 +59,9 @@ private:
 	std::vector<D3DXVECTOR3> m_vPos;				// 位置
 	std::vector<D3DXVECTOR3> m_vMove;				// 各方向への移動量
 	std::vector<float> m_vfSpeed;					// 移動量
-	std::vector<bool> m_vbSpeedInertia;				// 移動の慣性
-	std::vector<bool> m_vbGravity;					// 重力の有無
+	std::vector<float> m_vfSpeedInertia;			// 移動の慣性
+	std::vector<float> m_vfGravity;					// 重力
+	std::vector<float> m_vfBounce;					// 跳ね返りs
 	std::vector<int> m_vnLife;						// 寿命
 	std::vector<float> m_vfRadius;					// 半径
 	std::vector<float> m_vfAddRadius;				// 半径の変更量

@@ -29,6 +29,7 @@ public:
 		TYPE_NORMAL = 0,		// 通常
 		TYPE_HOMING,			// ホーミング
 		TYPE_FAN,				// 風
+		TYPE_SAND,				// 砂
 		TYPE_MAX
 	}TYPE;
 
@@ -36,13 +37,13 @@ public:
 	~CParticleBatching();
 
 	static CParticleBatching* Create(const D3DXVECTOR3 posP, const int nLifeP, const int nValue, const D3DXVECTOR3 nor, const D3DXVECTOR3 angle,
-		const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, const bool bGravity,
-		const int nLifeE, const float fSpeedE, const bool bSpeedEInertia, const D3DXCOLOR col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), const float fDist = 0.0f,
+		const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, const float fGravity, const float fBounce,
+		const int nLifeE, const float fSpeedE, const float fSpeedEInertia, const D3DXCOLOR col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), const float fDist = 0.0f,
 		const bool bShadow = false, const bool bHoming = false, CObject* HomingObj = nullptr, D3DXVECTOR3 HomingPos = DEFAULT_VECTOR3, const float fSpeedHoming = 0.0f);
 	HRESULT Init(void) { return S_OK; }
 	HRESULT Init(const D3DXVECTOR3 posP, const int nLifeP, const int nValue, const D3DXVECTOR3 nor, const D3DXVECTOR3 angle,
-		const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, const bool bGravity,
-		const int nLifeE, const float fSpeedE, const bool bSpeedEInertia, const D3DXCOLOR col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), const float fDist = 0.0f,
+		const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, const float fGravity, const float fBounce,
+		const int nLifeE, const float fSpeedE, const float fSpeedEInertia, const D3DXCOLOR col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), const float fDist = 0.0f,
 		const bool bShadow = false, const bool bHoming = false, CObject* HomingObj = nullptr, D3DXVECTOR3 HomingPos = DEFAULT_VECTOR3, const float fSpeedHoming = 0.0f);
 	void Uninit(void);
 	void Update(void);
@@ -61,10 +62,11 @@ private:
 	float m_fAddRadius;					// エフェクトの半径の変化量
 	float m_fMinusAlpha;				// エフェクトの透明度の変化量
 	CParticleBatching::TYPE m_typeP;	// パーティクルの種類
-	bool m_bGravity;					// エフェクトの重力の有無
+	float m_fGravity;					// エフェクトの重力
+	float m_fBounce;					// エフェクトの跳ね返り
 	int m_nLifeE;						// エフェクトの寿命
 	float m_fSpeedE;					// エフェクトの移動量
-	bool m_bSpeedEInertia;				// エフェクトの移動量に慣性をつけるかどうか
+	float m_fSpeedEInertia;				// エフェクトの移動量の慣性
 	D3DXCOLOR m_col;					// 色
 	bool m_bShadow;						// 影の有無
 	float m_fDist;						// 中心からの距離

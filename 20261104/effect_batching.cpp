@@ -349,14 +349,14 @@ void CEffectBatching::Update(void)
 			}
 		}
 
-		if (m_vbGravity.at(nCntEffect) == true)
+		if (m_vfGravity.at(nCntEffect) != 0.0f)
 		{// 重力あり
 			m_vPos.at(nCntEffect).y += m_vMove.at(nCntEffect).y;
-			m_vMove.at(nCntEffect).y += GRAVITY;
+			m_vMove.at(nCntEffect).y += m_vfGravity.at(nCntEffect);
 
 			if (m_vPos.at(nCntEffect).y < 0.0f)
 			{// 地面との当たり判定
-				m_vMove.at(nCntEffect).y *= -0.9f;
+				m_vMove.at(nCntEffect).y *= m_vfBounce.at(nCntEffect);
 			}
 		}
 		else
@@ -364,11 +364,8 @@ void CEffectBatching::Update(void)
 			m_vPos.at(nCntEffect).y += m_vMove.at(nCntEffect).y * m_vfSpeed.at(nCntEffect);
 		}
 
-		if (m_vbSpeedInertia.at(nCntEffect) == true)
-		{// 慣性あり
-			// 慣性
-			m_vfSpeed.at(nCntEffect) += (0.0f - m_vfSpeed.at(nCntEffect)) * EFFECT_INERTIA;
-		}
+		// 慣性
+		m_vfSpeed.at(nCntEffect) += (0.0f - m_vfSpeed.at(nCntEffect)) * m_vfSpeedInertia.at(nCntEffect);
 
 		// サイズを変更する
 		m_vfRadius.at(nCntEffect) += m_vfAddRadius.at(nCntEffect);
@@ -628,8 +625,8 @@ void CEffectBatching::ShadowCalc(D3DXMATRIX matrix, const float fRadius)
 //========================================================================
 // バッチ描画エフェクトを設定
 //========================================================================
-void CEffectBatching::Set(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const float fSpeed, const bool bSpeedInertia,
-	const bool bGravity, const int nLife, const float fRadius, const float fAddRadius, const float fMinusAlpha,
+void CEffectBatching::Set(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const float fSpeed, const float fSpeedInertia,
+	const float fGravity, const float fBounce, const int nLife, const float fRadius, const float fAddRadius, const float fMinusAlpha,
 	const D3DXCOLOR col, const bool bShadow, const bool bHoming,
 	CObject* HomingObj, D3DXVECTOR3 HomingPos, const float fSpeedHoming)
 {
@@ -642,8 +639,9 @@ void CEffectBatching::Set(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const f
 	m_vPos.push_back(pos);
 	m_vMove.push_back(move);
 	m_vfSpeed.push_back(fSpeed);
-	m_vbSpeedInertia.push_back(bSpeedInertia);
-	m_vbGravity.push_back(bGravity);
+	m_vfSpeedInertia.push_back(fSpeedInertia);
+	m_vfGravity.push_back(fGravity);
+	m_vfBounce.push_back(fBounce);
 	m_vnLife.push_back(nLife);
 	m_vfRadius.push_back(fRadius);
 	m_vfAddRadius.push_back(fAddRadius);
@@ -672,8 +670,9 @@ void CEffectBatching::Reset(void)
 	m_vPos.clear();
 	m_vMove.clear();
 	m_vfSpeed.clear();
-	m_vbSpeedInertia.clear();
-	m_vbGravity.clear();
+	m_vfSpeedInertia.clear();
+	m_vfGravity.clear();
+	m_vfBounce.clear();
 	m_vnLife.clear();
 	m_vfRadius.clear();
 	m_vfAddRadius.clear();
@@ -699,8 +698,9 @@ void CEffectBatching::SwapAndPop(const int nIdx)
 		m_vPos.pop_back();
 		m_vMove.pop_back();
 		m_vfSpeed.pop_back();
-		m_vbSpeedInertia.pop_back();
-		m_vbGravity.pop_back();
+		m_vfSpeedInertia.pop_back();
+		m_vfGravity.pop_back();
+		m_vfBounce.pop_back();
 		m_vnLife.pop_back();
 		m_vfRadius.pop_back();
 		m_vfAddRadius.pop_back();
@@ -732,12 +732,16 @@ void CEffectBatching::SwapAndPop(const int nIdx)
 		m_vfSpeed.pop_back();
 
 		// スピードの慣性
-		m_vbSpeedInertia.at(nIdx) = m_vbSpeedInertia.back();
-		m_vbSpeedInertia.pop_back();
+		m_vfSpeedInertia.at(nIdx) = m_vfSpeedInertia.back();
+		m_vfSpeedInertia.pop_back();
 
 		// 重力の有無
-		m_vbGravity.at(nIdx) = m_vbGravity.back();
-		m_vbGravity.pop_back();
+		m_vfGravity.at(nIdx) = m_vfGravity.back();
+		m_vfGravity.pop_back();
+		
+		// 重力の有無
+		m_vfBounce.at(nIdx) = m_vfBounce.back();
+		m_vfBounce.pop_back();
 
 		// 寿命
 		m_vnLife.at(nIdx) = m_vnLife.back();

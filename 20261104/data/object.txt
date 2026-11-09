@@ -19,7 +19,7 @@ END_FIELDSET
 # プレイヤー
 #---------------------------------------
 PLAYERSET
-	MODELFILE = data\\MODEL\\spikeball000.x
+	MODELFILE = data\\MODEL\\weed.x
 	POS = 0.0 0.0 -9000.0
 	RADIUS = 10.0
 	JUMP = 9.0

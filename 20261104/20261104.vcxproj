@@ -177,6 +177,7 @@
     <ClCompile Include="particle_batching.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="renderer.cpp" />
+    <ClCompile Include="sand.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="tcp_client.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -217,6 +218,7 @@
     <ClInclude Include="player.h" />
     <ClInclude Include="protocol_ranking.h" />
     <ClInclude Include="renderer.h" />
+    <ClInclude Include="sand.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="tcp_client.h" />
     <ClInclude Include="texture.h" />

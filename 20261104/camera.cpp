@@ -100,7 +100,7 @@ HRESULT CCamera::Init(void)
 	m_fRDistance = 0.0f;
 	m_fViewAngle = DEFAULT_VIEW_ANGLE;
 	m_fMoveVA = 0.0f;
-	m_type = TYPE_FOLLOW;
+	m_type = TYPE_SOLO;
 	m_pFollow = nullptr;
 	memset(&m_aPlane[0], 0, sizeof m_aPlane);
 	m_bShake = false;

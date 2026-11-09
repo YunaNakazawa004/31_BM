@@ -24,6 +24,7 @@
 #include "meshorbit.h"
 #include "particle3D.h"
 #include "particleX.h"
+#include "sand.h"
 
 //************************************************************************
 // マクロ定義
@@ -250,7 +251,7 @@ void CPlayer::Update(void)
 
 #ifdef _DEBUG
 	// 値の微調整
-	//SubControll();
+	SubControll();
 #endif
 
 	// 風の移動
@@ -650,6 +651,11 @@ void CPlayer::SubControll(void)
 		CParticleX::Create("data\\MODEL\\balloon_Mickey.x", D3DXVECTOR3(0.0f, 20.0f, 0.0f), 1, 20,
 			D3DXVECTOR3(0.0f, 1.0f, 0.0f), D3DXVECTOR3(D3DX_PI * 2.0f, D3DX_PI * 0.5f, D3DX_PI * 2.0f),
 			D3DXVECTOR3(3.0f, 3.0f, 3.0f), 0.97f, CParticleX::TYPE_BOUND, true, 200, 2.0f, true, m_fRadius);
+	}
+
+	if (pInputKeyboard->GetTrigger(DIK_NUMPAD3) == true)
+	{
+		CSand::Create(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(1.0f, 0.1f, 0.0f));
 	}
 
 	if (pInputKeyboard->GetRepeat(DIK_RIGHT) == true)

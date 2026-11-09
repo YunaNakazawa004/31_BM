@@ -1,6 +1,6 @@
 //========================================================================
 // 
-// バッチ描画パーティクル [ particle3D.cpp ]
+// バッチ描画パーティクル [ particle_batching.cpp ]
 // Author : Nakazawa Yuna
 // 
 //========================================================================
@@ -21,7 +21,7 @@
 //========================================================================
 CParticleBatching* CParticleBatching::Create(const D3DXVECTOR3 posP, const int nLifeP, const int nValue, const D3DXVECTOR3 nor, const D3DXVECTOR3 angle,
 	const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP,
-	const bool bGravity, const int nLifeE, const float fSpeedE, const bool bSpeedEInertia, const D3DXCOLOR col, const float fDist,
+	const float fGravity, const float fBounce, const int nLifeE, const float fSpeedE, const float fSpeedEInertia, const D3DXCOLOR col, const float fDist,
 	const bool bShadow, const bool bHoming, CObject* HomingObj, D3DXVECTOR3 HomingPos, const float fSpeedHoming)
 {
 #ifndef LIST
@@ -45,7 +45,7 @@ CParticleBatching* CParticleBatching::Create(const D3DXVECTOR3 posP, const int n
 	{// NULLチェック
 		// 初期化処理
 		if (FAILED(pParticleBatching->Init(posP, nLifeP, nValue, nor, angle, fRadius, fAddRadius, fMinusAlpha, typeP,
-			bGravity, nLifeE, fSpeedE, bSpeedEInertia, col, fDist, bShadow, bHoming, HomingObj, HomingPos, fSpeedHoming)))
+			fGravity, fBounce, nLifeE, fSpeedE, fSpeedEInertia, col, fDist, bShadow, bHoming, HomingObj, HomingPos, fSpeedHoming)))
 		{// もし失敗した場合
 			OutputDebugStringA("! ! ! バッチ描画パーティクルの初期化に失敗しました ! ! !\n");
 
@@ -77,9 +77,11 @@ CParticleBatching::CParticleBatching(const int nPriority) :CObject(nPriority)
 	m_fRadius = 0.0f;
 	m_fAddRadius = 0.0f;
 	m_typeP = CParticleBatching::TYPE_NORMAL;
-	m_bGravity = false;
+	m_fGravity = 0.0f;
+	m_fBounce = 0.0f;
 	m_nLifeE = 0;
 	m_fSpeedE = 0.0f;
+	m_fSpeedEInertia = 0.0f;
 	m_col = COLOR_WHITE;
 	m_bShadow = false;
 	m_fDist = 0.0f;
@@ -101,7 +103,7 @@ CParticleBatching::~CParticleBatching()
 //========================================================================
 HRESULT CParticleBatching::Init(const D3DXVECTOR3 posP, const int nLifeP, const int nValue, const D3DXVECTOR3 nor, const D3DXVECTOR3 angle,
 	const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP,
-	const bool bGravity, const int nLifeE, const float fSpeedE, const bool bSpeedEInertia, const D3DXCOLOR col, const float fDist,
+	const float fGravity, const float fBounce, const int nLifeE, const float fSpeedE, const float fSpeedEInertia, const D3DXCOLOR col, const float fDist,
 	const bool bShadow, const bool bHoming, CObject* HomingObj, D3DXVECTOR3 HomingPos, const float fSpeedHoming)
 {
 	// バッチ描画パーティクルクラスの値を初期化
@@ -114,10 +116,11 @@ HRESULT CParticleBatching::Init(const D3DXVECTOR3 posP, const int nLifeP, const 
 	m_fAddRadius = fAddRadius;
 	m_fMinusAlpha = fMinusAlpha;
 	m_typeP = typeP;
-	m_bGravity = bGravity;
+	m_fGravity = fGravity;
+	m_fBounce = fBounce;
 	m_nLifeE = nLifeE;
 	m_fSpeedE = fSpeedE;
-	m_bSpeedEInertia = bSpeedEInertia;
+	m_fSpeedEInertia = fSpeedEInertia;
 	m_col = col;
 	m_fDist = fDist;
 	m_bShadow = bShadow;
@@ -188,10 +191,24 @@ void CParticleBatching::Update(void)
 			pos.z = m_posP.z + rot.z * m_fDist;
 
 			break;
+
+		case TYPE_SAND:			// 砂
+
+			rot.x = m_nor.x + RANDOM_ROT((int)(m_angle.x * 100.0f));		// 角度を設定
+			rot.y = m_nor.y + RANDOM_ROT((int)(m_angle.y * 100.0f));		// 角度を設定
+			rot.z = m_nor.z + RANDOM_ROT((int)(m_angle.z * 100.0f));		// 角度を設定
+
+			D3DXVec3Normalize(&rot, &rot);						// 正規化
+
+			pos.x = m_posP.x + rot.x * m_fDist;
+			pos.y = m_posP.y + rot.y;
+			pos.z = m_posP.z + rot.z * m_fDist;
+
+			break;
 		}
 
 		// バッチ描画エフェクトの生成
-		CManager::GetEffectBatching()->Set(pos, rot, m_fSpeedE, m_bSpeedEInertia, m_bGravity, m_nLifeE, m_fRadius,
+		CManager::GetEffectBatching()->Set(pos, rot, m_fSpeedE, m_fSpeedEInertia, m_fGravity, m_fBounce, m_nLifeE, m_fRadius,
 			m_fAddRadius, m_fMinusAlpha, m_col, m_bShadow, m_bHoming, m_HomingObj, m_HomingPos, m_fSpeedHoming);
 	}
 

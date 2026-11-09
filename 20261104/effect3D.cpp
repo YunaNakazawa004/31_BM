@@ -186,7 +186,7 @@ HRESULT CEffect3D::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const boo
 
 	if (m_bShadow == true)
 	{// 影をバッチ描画エフェクトに設定する
-		CManager::GetEffectBatching()->Set(pos, move, fSpeed, bSpeedInertia, bGravity, nLife, fRadius, fAddRadius, fMinusAlpha,
+		CManager::GetEffectBatching()->Set(pos, move, fSpeed, bSpeedInertia, bGravity, 0.0f, nLife, fRadius, fAddRadius, fMinusAlpha,
 			col, bShadow, bHoming, HomingObj, HomingPos, fSpeedHoming);
 	}
 
