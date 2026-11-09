@@ -11,7 +11,7 @@ SET_SCRIPT
 FIELDSET
 	FIELDTEXTURE = data\\TEXTURE\\sand.jpg
 	POS = 0.0 0.0 0.0
-	SIZE = 3000.0 400.0 3000.0
+	SIZE = 3000.0 400.0 20000.0
 	BLOCK = 20.0 20.0
 END_FIELDSET
 
@@ -20,8 +20,8 @@ END_FIELDSET
 #---------------------------------------
 PLAYERSET
 	MODELFILE = data\\MODEL\\spikeball000.x
-	POS = 0.0 0.0 0.0
-	RADIUS = 20.0
+	POS = 0.0 0.0 -9000.0
+	RADIUS = 10.0
 	JUMP = 9.0
 	SPEED = 0.002
 	INERTIA = 0.01
@@ -32,9 +32,10 @@ END_PLAYERSET
 #---------------------------------------
 WINDSET
 	MODELFILE = data\\MODEL\\wind.x
-	POS = 0.0 0.0 -400.0
-	VEC = 0.0 0.0 1.0
+	POS = 0.0 0.0 -9400.0
+	VEC = 0.0 0.0 -1.0
 	STRENGTH = 5.0
+	AFFECT = 1.0
 END_WINDSET
 
 END_SCRIPT		# 消さない

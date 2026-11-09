@@ -153,6 +153,8 @@ CPlayer::CPlayer(const int nPriority) :CObjectX(nPriority)
 	m_fSpeedRot = 0.0f;
 	m_fSpeedInertia = 0.0f;
 	m_fRadius = 0.0f;
+	m_pWindLeft = nullptr;
+	m_pWindRight = nullptr;
 	m_nCounter = 0;
 }
 
@@ -190,12 +192,26 @@ HRESULT CPlayer::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJ
 	m_fRadius = fRadius;
 	m_nCounter = 0;
 
+	// 風の生成
+	if (m_pWindLeft == nullptr)
+	{// NULLチェック
+		m_pWindLeft = CWind::Create(D3DXVECTOR3(pos.x - 200.0f, pos.y, pos.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 2.0f, 0.4f);
+	}
+
+	if (m_pWindRight == nullptr)
+	{// NULLチェック
+		m_pWindRight = CWind::Create(D3DXVECTOR3(pos.x + 200.0f, pos.y, pos.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 2.0f, 0.4f);
+	}
+
 	D3DXVECTOR3 scale = CPlayer::GetScale();
 	scale.x = m_fRadius / DEFAULT_SIZE;
 	scale.y = m_fRadius / DEFAULT_SIZE;
 	scale.z = m_fRadius / DEFAULT_SIZE;
 	SetScale(scale);
 	SetRotation(D3DXVECTOR3(0.0f, D3DX_PI, 0.0f));
+
+	// カメラの追従対象を設定
+	CManager::GetCamera()->SetFollow(this);
 
 	return S_OK;
 }
@@ -232,32 +248,14 @@ void CPlayer::Update(void)
 		break;
 	}
 
-	if (Movement() == true)
-	{// 移動中
-		frotDiff = m_rotDest.y - m_rotOld.y;
-		CorrectAngle(&frotDiff, frotDiff);
-
-		// 回転量制御
-		if (frotDiff > D3DX_PI * 0.7f || frotDiff < -D3DX_PI * 0.7f)
-		{// 反対向きに移動した
-			m_fValueRot *= -1.0f;
-			rot.y = m_rotDest.y;
-		}
-		else
-		{// 反対向きに移動しなかった
-			m_fValueRot += SPEED;
-
-			if (m_fValueRot > MAX_VALUEROT)
-			{// 回転量の上限
-				m_fValueRot = MAX_VALUEROT;
-			}
-		}
-	}
-
 #ifdef _DEBUG
 	// 値の微調整
 	//SubControll();
 #endif
+
+	// 風の移動
+	m_pWindLeft->StickControll(CInputJoypad::JOYKEY_LEFTSTICK);
+	m_pWindRight->StickControll(CInputJoypad::JOYKEY_RIGHTSTICK);
 
 	if (m_bJump == false && m_bCharge == false)
 	{// ジャンプしていないとき
@@ -379,10 +377,16 @@ void CPlayer::Update(void)
 	// 風の影響
 	CManager::GetWind()->WindAffect(&pos, &m_vecAxis, &m_rotDest, &m_fValueRot);
 
-	// XZ方向の移動量
-	D3DXVECTOR2 move = D3DXVECTOR2(m_move.x, m_move.z);
+	// 左右の風の影響
+	m_pWindLeft->WindAffect(&pos, &m_vecAxis, &m_rotDest, &m_fValueRot);
+	m_pWindRight->WindAffect(&pos, &m_vecAxis, &m_rotDest, &m_fValueRot);
 
-	// 移動制限 ( ズレを防ぐため反射処理が終わった後に行う )
+	// 風の自動移動
+	CManager::GetWind()->AutoMove(pos - m_posOld);
+	m_pWindLeft->AutoMove(pos - m_posOld);
+	m_pWindRight->AutoMove(pos - m_posOld);
+
+	// 移動制限
 	if (pos.x + m_fRadius > CManager::GetLimit().x)
 	{// X上限
 		pos.x = CManager::GetLimit().x - m_fRadius;

@@ -120,6 +120,9 @@ HRESULT CField::Init(const D3DXVECTOR3 pos, const float fWidth, const float fDep
 {
 	// 初期化処理
 	CObject3D::Init(pos, fWidth, 0.0f, fDepth);
+	
+	// テクスチャ設定
+	SetTexUV(30, 200);
 
 	return S_OK;
 }

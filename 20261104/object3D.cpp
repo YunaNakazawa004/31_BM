@@ -374,6 +374,26 @@ void CObject3D::SetTexUV(const int nPatternAnim, const int nTexWidth, const int 
 }
 
 //========================================================================
+// テクスチャ座標設定
+//========================================================================
+void CObject3D::SetTexUV(const int nTexWidth, const int nTexHeight)
+{
+	VERTEX_3D* pVtx;
+
+	// 頂点バッファをロックし、頂点情報へのポインタを取得
+	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
+
+	// テクスチャ座標の設定
+	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
+	pVtx[1].tex = D3DXVECTOR2((float)nTexWidth, 0.0f);
+	pVtx[2].tex = D3DXVECTOR2(0.0f, (float)nTexHeight);
+	pVtx[3].tex = D3DXVECTOR2((float)nTexWidth, (float)nTexHeight);
+
+	// 頂点バッファをアンロックする
+	m_pVtxBuff->Unlock();
+}
+
+//========================================================================
 // 現在位置の高さを取得
 //========================================================================
 float CObject3D::GetHeight(const D3DXVECTOR3 pos)

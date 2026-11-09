@@ -65,6 +65,8 @@ CCamera::CCamera()
 	m_fViewAngle = 0.0f;
 	m_fMoveVA = 0.0f;
 	m_type = TYPE_STOP;
+	m_pFollow = nullptr;
+	memset(&m_aPlane[0], 0, sizeof m_aPlane);
 	m_bShake = false;
 }
 
@@ -98,7 +100,9 @@ HRESULT CCamera::Init(void)
 	m_fRDistance = 0.0f;
 	m_fViewAngle = DEFAULT_VIEW_ANGLE;
 	m_fMoveVA = 0.0f;
-	m_type = TYPE_PLAYER;
+	m_type = TYPE_FOLLOW;
+	m_pFollow = nullptr;
+	memset(&m_aPlane[0], 0, sizeof m_aPlane);
 	m_bShake = false;
 
 	m_viewport.X = 0;
@@ -152,7 +156,7 @@ void CCamera::Update(void)
 
 	if (pInputKeyboard->GetTrigger(DIK_F5) == true || pInputJoypad->GetTrigger(0, CInputJoypad::JOYKEY_LEFT_THUMB) == true)
 	{// 視点切り替え
-		m_type = (m_type == TYPE_PLAYER) ? TYPE_SOLO : TYPE_PLAYER;
+		m_type = (m_type == TYPE_FOLLOW) ? TYPE_SOLO : TYPE_FOLLOW;
 	}
 
 	// それぞれのカメラの処理
@@ -317,6 +321,57 @@ void CCamera::Update(void)
 			m_rot.y += ((rot.y - D3DX_PI) - m_rot.y) * INERTIA_ROT;
 		}
 #endif
+
+		// カメラ向きを調整
+		CorrectAngle(&m_rot.y, m_rot.y);
+
+		// 注視点の補正
+		m_posR += (m_posRDest - m_posR) * INERTIA_POSR;
+
+		// 視点の補正
+		m_posV += m_posVOff + (m_posVDest - m_posV) * INERTIA_POSV;
+
+		break;
+
+	case TYPE_FOLLOW:
+		if (m_pFollow == nullptr)
+		{// NULLチェック
+			m_type = TYPE_SOLO;
+
+			break;
+		}
+
+		pos = m_pFollow->GetPosition();
+		rot = m_pFollow->GetRotation();
+
+		nAutoCameraCounter++;
+
+		// プレイヤー向きを調整
+		CorrectAngle(&rot.y, ((rot.y - D3DX_PI) - m_rot.y));
+
+		// 目的の注視点を設定
+		m_posRDest.x = pos.x + sinf(D3DX_PI + rot.y) * m_fRDistance;
+		m_posRDest.y = pos.y + HEIGHT;
+		m_posRDest.z = pos.z + cosf(D3DX_PI + rot.y) * m_fRDistance;
+
+		// 目的の視点を設定
+		m_posVDest.x = m_posRDest.x + sinf(D3DX_PI + m_rot.y) * m_fDistance * sinf((D3DX_PI * 0.5f) - m_fAngle);
+		m_posVDest.y = m_posRDest.y + cosf((D3DX_PI * 0.5f) - m_fAngle) * m_fDistance;
+		m_posVDest.z = m_posRDest.z + cosf(D3DX_PI + m_rot.y) * m_fDistance * sinf((D3DX_PI * 0.5f) - m_fAngle);
+
+		// カメラのズーム
+		if (pInputMouse->GetWheel() != 0)
+		{// ホイールが回転したとき
+			m_fDistance += (float)(pInputMouse->GetWheel() / ONE_TICK) * MOVE_DIST;
+
+			if (m_fDistance <= MIN_DISTANCE)
+			{// 最低値
+				m_fDistance = MIN_DISTANCE;
+			}
+
+			// ホイールの値をリセット
+			pInputMouse->ResetWheel();
+		}
 
 		// カメラ向きを調整
 		CorrectAngle(&m_rot.y, m_rot.y);
@@ -625,7 +680,7 @@ void CCamera::SetCamera(void)
 {
 	// デバイスの取得
 	CRenderer* pRenderer = CManager::GetRenderer();			// レンダラーへのポインタ
-	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();			// デバイスへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 
 	// ビューポートの設定
 	pDevice->SetViewport(&m_viewport);
@@ -660,7 +715,7 @@ void CCamera::SetCamera(void)
 	D3DXMatrixLookAtLH(&m_mtxView,
 		&m_posV,			// 視点
 		&m_posR,			// 注視点
-		&m_vecU);		// 上方向ベクトル
+		&m_vecU);			// 上方向ベクトル
 
 	// ビューマトリックスの設定
 	pDevice->SetTransform(D3DTS_VIEW, &m_mtxView);
@@ -716,6 +771,96 @@ void CCamera::SetShake(const float fValue)
 	{// 0が設定された
 		m_bShake = false;
 	}
+}
+
+//=============================================================================
+// 追従対象を設定
+//=============================================================================
+void CCamera::SetFollow(CObject* pFollow)
+{
+	if (pFollow == nullptr)
+	{// NULLチェック
+		return;
+	}
+
+	m_pFollow = pFollow;
+}
+
+//=============================================================================
+// 視錐台の計算
+//=============================================================================
+void CCamera::CalcViewFrustum(void)
+{
+	// ローカル変数
+	D3DXMATRIX matVF;		// 視錐台の計算用マトリックス
+
+	// ビュー行列と射影行列を合成
+	D3DXMatrixMultiply(&matVF, &m_mtxView, &m_mtxProjection);
+
+	// 合成した行列の要素から、6つの平面の係数を抽出する
+	// 左平面
+	m_aPlane[0].a = matVF._14 + matVF._11;
+	m_aPlane[0].b = matVF._24 + matVF._21;
+	m_aPlane[0].c = matVF._34 + matVF._31;
+	m_aPlane[0].d = matVF._44 + matVF._41;
+
+	// 右平面
+	m_aPlane[1].a = matVF._14 - matVF._11;
+	m_aPlane[1].b = matVF._24 - matVF._21;
+	m_aPlane[1].c = matVF._34 - matVF._31;
+	m_aPlane[1].d = matVF._44 - matVF._41;
+
+	// 上平面
+	m_aPlane[2].a = matVF._14 - matVF._12;
+	m_aPlane[2].b = matVF._24 - matVF._22;
+	m_aPlane[2].c = matVF._34 - matVF._32;
+	m_aPlane[2].d = matVF._44 - matVF._42;
+
+	// 下平面
+	m_aPlane[3].a = matVF._14 + matVF._12;
+	m_aPlane[3].b = matVF._24 + matVF._22;
+	m_aPlane[3].c = matVF._34 + matVF._32;
+	m_aPlane[3].d = matVF._44 + matVF._42;
+
+	// 手前平面
+	m_aPlane[4].a = matVF._13;
+	m_aPlane[4].b = matVF._23;
+	m_aPlane[4].c = matVF._33;
+	m_aPlane[4].d = matVF._43;
+
+	// 奥平面
+	m_aPlane[5].a = matVF._14 - matVF._13;
+	m_aPlane[5].b = matVF._24 - matVF._23;
+	m_aPlane[5].c = matVF._34 - matVF._33;
+	m_aPlane[5].d = matVF._44 - matVF._43;
+
+	// 全ての平面を正規化
+	for (int nCntPlane = 0; nCntPlane < VIEWFRUSTUM_NUM; nCntPlane++)
+	{
+		D3DXPlaneNormalize(&m_aPlane[nCntPlane], &m_aPlane[nCntPlane]);
+	}
+}
+
+//=============================================================================
+// カメラ内に存在するかどうか
+//=============================================================================
+bool CCamera::IsInside(const D3DXVECTOR3 pos, const float fRadius)
+{
+	// 視錐台の計算
+	CalcViewFrustum();
+
+	for (int nCntPlane = 0; nCntPlane < VIEWFRUSTUM_NUM; nCntPlane++)
+	{
+		// 距離を計算
+		float fDist = D3DXPlaneDotCoord(&m_aPlane[nCntPlane], &pos);
+
+		if (fDist < -fRadius)
+		{// 外側にいる
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //=============================================================================

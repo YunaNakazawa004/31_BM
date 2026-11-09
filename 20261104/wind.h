@@ -9,6 +9,7 @@
 
 #include "main.h"
 #include "objectX.h"
+#include "input.h"
 
 //************************************************************************
 // 風クラス
@@ -21,19 +22,24 @@ public:
 
 	static HRESULT Load(const char* pFilename);
 	static void Unload(void);
-	static CWind* Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength);
-	HRESULT Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength);
+	static CWind* Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect);
+	HRESULT Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
 
 	void WindAffect(D3DXVECTOR3* pPos, D3DXVECTOR3* pVecAxis, D3DXVECTOR3* pRotDest, float* pValueRot);
+	void StickControll(CInputJoypad::JOYKEY joykey);
+	void AutoMove(const D3DXVECTOR3 move);
 
 private:
 	static int m_nIdxModel;		// モデルのインデックス
+	D3DXVECTOR3 m_move;			// 移動量
+	D3DXVECTOR3 m_rotDest;		// 目的の向き
 	D3DXVECTOR3 m_vec;			// 風の吹く向き
 	float m_fStrength;			// 風の強さ
 	float m_fAngle;				// Y軸に対する傾き
+	float m_fAffect;			// 影響力
 };
 
 #endif

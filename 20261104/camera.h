@@ -10,6 +10,16 @@
 #include "main.h"
 
 //*****************************************************************************
+// マクロ定義
+//*****************************************************************************
+#define VIEWFRUSTUM_NUM			(6)				// 視錐台の数
+
+//*****************************************************************************
+// 前方宣言
+//*****************************************************************************
+class CObject;
+
+//*****************************************************************************
 // カメラクラス
 //*****************************************************************************
 class CCamera
@@ -19,6 +29,7 @@ public:
 	typedef enum
 	{
 		TYPE_PLAYER = 0,		// プレイヤー追従
+		TYPE_FOLLOW,			// 追従
 		TYPE_SOLO,				// 単体カメラ
 		TYPE_ROTATION,			// 定点周回カメラ
 		TYPE_STOP,				// 定点カメラ
@@ -37,6 +48,9 @@ public:
 	void SetViewAngle(float fViewAngle);
 	void SetShake(const float fValue);
 	void SetType(const TYPE type) { m_type = type; }
+	void SetFollow(CObject* pFollow);
+	void CalcViewFrustum(void);
+	bool IsInside(const D3DXVECTOR3 pos, const float fRadius);
 
 	D3DXVECTOR3 GetPositionV(void) { return m_posV; }
 	D3DXVECTOR3 GetPositionR(void) { return m_posR; }
@@ -61,6 +75,8 @@ private:
 	D3DXMATRIX m_mtxView;			// ビューマトリックス(カメラの画面のサイズ)
 	D3DVIEWPORT9 m_viewport;		// ビューポート
 	TYPE m_type;					// 種類
+	CObject* m_pFollow;				// 追従対象
+	D3DXPLANE m_aPlane[6];			// 視錐台
 	bool m_bShake;					// カメラの振動
 };
 

@@ -187,6 +187,7 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 				D3DXVECTOR3 pos = DEFAULT_VECTOR3;		// ‰ŠúˆÊ’u
 				D3DXVECTOR3 vec = DEFAULT_VECTOR3;		// •—‚ÌŒü‚«
 				float fStrength = 0.0f;					// ‹­‚³
+				float fAffect = 0.0f;					// ‰e‹¿—Í
 
 				file >> line;					// Ÿ‚Ì•¶š
 
@@ -225,11 +226,19 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 
 					file >> line;				// Ÿ‚Ì•¶š
 				}
+				
+				if (line.find("AFFECT") != std::string::npos)
+				{// ‰e‹¿—Í
+					file >> line;				// =
+					file >> fAffect;			// ‰e‹¿—Í
+
+					file >> line;				// Ÿ‚Ì•¶š
+				}
 
 				if (line.find("END_WINDSET") != std::string::npos)
 				{// •—İ’è‚ğI‚í‚é
 					CWind::Load(pModelFile.c_str());
-					pObject = CWind::Create(pos, vec, fStrength);
+					pObject = CWind::Create(pos, vec, fStrength, fAffect);
 
 					continue;
 				}

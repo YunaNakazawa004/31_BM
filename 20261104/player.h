@@ -14,6 +14,7 @@
 // 前方宣言
 //************************************************************************
 class CMeshOrbit;
+class CWind;
 
 //************************************************************************
 // マクロ定義
@@ -75,6 +76,9 @@ private:
 	float m_fSpeedRot;			// 回転速度
 	float m_fSpeedInertia;		// 回転速度
 	float m_fRadius;			// 半径
+
+	CWind* m_pWindLeft;			// 左側の風
+	CWind* m_pWindRight;		// 右側の風
 
 	int m_nCounter;				// 汎用カウンター
 };

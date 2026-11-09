@@ -187,11 +187,6 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 			return E_FAIL;
 		}
-
-		if (m_pCamera != nullptr)
-		{// NULLチェック
-			m_pCamera->SetType(CCamera::TYPE_SOLO);
-		}
 	}
 
 	// ライトの生成
@@ -275,19 +270,6 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	// フィールドの生成
 	CFile::SetObject("data\\object.txt", CObject::TYPE_FIELD);
 
-	// プレイヤーの生成
-	if (m_pPlayer == nullptr)
-	{// NULLチェック
-		m_pPlayer = dynamic_cast<CPlayer*>(CFile::SetObject("data\\object.txt", CObject::TYPE_PLAYER));
-
-		if (m_pPlayer == nullptr)
-		{// NULLチェック
-			OutputDebugStringA("! ! ! プレイヤーの生成に失敗しました ! ! !\n");
-
-			return E_FAIL;
-		}
-	}
-	
 	// 風の生成
 	if (m_pWind == nullptr)
 	{// NULLチェック
@@ -296,6 +278,19 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 		if (m_pWind == nullptr)
 		{// NULLチェック
 			OutputDebugStringA("! ! ! 風の生成に失敗しました ! ! !\n");
+
+			return E_FAIL;
+		}
+	}
+
+	// プレイヤーの生成
+	if (m_pPlayer == nullptr)
+	{// NULLチェック
+		m_pPlayer = dynamic_cast<CPlayer*>(CFile::SetObject("data\\object.txt", CObject::TYPE_PLAYER));
+
+		if (m_pPlayer == nullptr)
+		{// NULLチェック
+			OutputDebugStringA("! ! ! プレイヤーの生成に失敗しました ! ! !\n");
 
 			return E_FAIL;
 		}
@@ -602,24 +597,8 @@ void CManager::Reset(void)
 	// ポーズを解除
 	m_bPause = false;
 
-	if (m_pCamera != nullptr)
-	{// NULLチェック
-		m_pCamera->SetType(CCamera::TYPE_SOLO);
-	}
-
 	// フィールドの生成
 	CFile::SetObject("data\\object.txt", CObject::TYPE_FIELD);
-
-	// プレイヤーの生成
-	if (m_pPlayer == nullptr)
-	{// NULLチェック
-		m_pPlayer = dynamic_cast<CPlayer*>(CFile::SetObject("data\\object.txt", CObject::TYPE_PLAYER));
-
-		if (m_pPlayer == nullptr)
-		{// NULLチェック
-			OutputDebugStringA("! ! ! プレイヤーの生成に失敗しました ! ! !\n");
-		}
-	}
 
 	// 風の生成
 	if (m_pWind == nullptr)
@@ -629,6 +608,17 @@ void CManager::Reset(void)
 		if (m_pWind == nullptr)
 		{// NULLチェック
 			OutputDebugStringA("! ! ! 風の生成に失敗しました ! ! !\n");
+		}
+	}
+
+	// プレイヤーの生成
+	if (m_pPlayer == nullptr)
+	{// NULLチェック
+		m_pPlayer = dynamic_cast<CPlayer*>(CFile::SetObject("data\\object.txt", CObject::TYPE_PLAYER));
+
+		if (m_pPlayer == nullptr)
+		{// NULLチェック
+			OutputDebugStringA("! ! ! プレイヤーの生成に失敗しました ! ! !\n");
 		}
 	}
 }
