@@ -37,12 +37,12 @@ public:
 	~CParticleBatching();
 
 	static CParticleBatching* Create(const D3DXVECTOR3 posP, const int nLifeP, const int nValue, const D3DXVECTOR3 nor, const D3DXVECTOR3 angle,
-		const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, const float fGravity, const float fBounce,
+		const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, CEffectBatching::TYPE type, const float fGravity, const float fBounce,
 		const int nLifeE, const float fSpeedE, const float fSpeedEInertia, const D3DXCOLOR col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), const float fDist = 0.0f,
 		const bool bShadow = false, const bool bHoming = false, CObject* HomingObj = nullptr, D3DXVECTOR3 HomingPos = DEFAULT_VECTOR3, const float fSpeedHoming = 0.0f);
 	HRESULT Init(void) { return S_OK; }
 	HRESULT Init(const D3DXVECTOR3 posP, const int nLifeP, const int nValue, const D3DXVECTOR3 nor, const D3DXVECTOR3 angle,
-		const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, const float fGravity, const float fBounce,
+		const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, CEffectBatching::TYPE type, const float fGravity, const float fBounce,
 		const int nLifeE, const float fSpeedE, const float fSpeedEInertia, const D3DXCOLOR col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), const float fDist = 0.0f,
 		const bool bShadow = false, const bool bHoming = false, CObject* HomingObj = nullptr, D3DXVECTOR3 HomingPos = DEFAULT_VECTOR3, const float fSpeedHoming = 0.0f);
 	void Uninit(void);
@@ -62,6 +62,7 @@ private:
 	float m_fAddRadius;					// エフェクトの半径の変化量
 	float m_fMinusAlpha;				// エフェクトの透明度の変化量
 	CParticleBatching::TYPE m_typeP;	// パーティクルの種類
+	CEffectBatching::TYPE m_type;		// エフェクトの種類の種類
 	float m_fGravity;					// エフェクトの重力
 	float m_fBounce;					// エフェクトの跳ね返り
 	int m_nLifeE;						// エフェクトの寿命

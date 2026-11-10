@@ -711,9 +711,9 @@ bool CInputJoypad::GetShoulder(int nIdx, JOYKEY key, int* pValueR, int* pValueL)
 //=============================================================================
 // ジョイパッドのスティックスロウ情報を取得(true : 動く	false : 動かない)
 //=============================================================================
-bool CInputJoypad::GetStickSlow(int nIdx)
+bool CInputJoypad::GetStickSlow(int nIdx, int nCount)
 {
-	return ((m_joyStickSlowCount[nIdx] % REPEAT_COUNT) == 0) ? true : false;
+	return ((m_joyStickSlowCount[nIdx] % nCount) == 0) ? true : false;
 }
 
 //=============================================================================

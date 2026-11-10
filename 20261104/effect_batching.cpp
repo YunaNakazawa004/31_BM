@@ -105,6 +105,10 @@ CEffectBatching::CEffectBatching()
 	// バッチ描画エフェクトクラスの値をクリア
 	m_pVtxBuff = nullptr;
 	m_pIdxBuff = nullptr;
+	m_pVtxBuffNormal = nullptr;
+	m_pIdxBuffNormal = nullptr;
+	m_pVtxBuffShadow = nullptr;
+	m_pIdxBuffShadow = nullptr;
 	m_nMax = 0;
 	m_nNumUse = 0;
 	m_nNumUseShadow = 0;
@@ -176,6 +180,49 @@ HRESULT CEffectBatching::Init(const int nMax)
 	// 頂点バッファをアンロック
 	m_pVtxBuff->Unlock();
 
+	// 通常描画の頂点バッファの生成
+	pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * m_nMax * 4,
+		D3DUSAGE_WRITEONLY,
+		FVF_VERTEX_3D,
+		D3DPOOL_MANAGED,
+		&m_pVtxBuffNormal,
+		nullptr);
+
+	// 通常描画の頂点バッファをロックし、頂点情報へのポインタを取得
+	m_pVtxBuffNormal->Lock(0, 0, (void**)&pVtxAdd, 0);
+
+	for (int nCntEffect = 0; nCntEffect < m_nMax; nCntEffect++)
+	{
+		// 頂点座標の設定
+		pVtxAdd[0].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		pVtxAdd[1].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		pVtxAdd[2].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		pVtxAdd[3].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+		// 法線の設定
+		pVtxAdd[0].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		pVtxAdd[1].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		pVtxAdd[2].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		pVtxAdd[3].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+
+		// 頂点カラーの設定
+		pVtxAdd[0].col = COLOR_WHITE;
+		pVtxAdd[1].col = COLOR_WHITE;
+		pVtxAdd[2].col = COLOR_WHITE;
+		pVtxAdd[3].col = COLOR_WHITE;
+
+		// テクスチャ座標の設定
+		pVtxAdd[0].tex = D3DXVECTOR2(0.0f, 0.0f);
+		pVtxAdd[1].tex = D3DXVECTOR2(1.0f, 0.0f);
+		pVtxAdd[2].tex = D3DXVECTOR2(0.0f, 1.0f);
+		pVtxAdd[3].tex = D3DXVECTOR2(1.0f, 1.0f);
+
+		pVtxAdd += 4;
+	}
+
+	// 通常描画の頂点バッファをアンロック
+	m_pVtxBuffNormal->Unlock();
+
 	// 影の頂点バッファの生成
 	pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * m_nMax * 4,
 		D3DUSAGE_WRITEONLY,
@@ -246,6 +293,33 @@ HRESULT CEffectBatching::Init(const int nMax)
 	// インデックスバッファをアンロックする
 	m_pIdxBuff->Unlock();
 
+	// 通常描画のインデックスバッファの設定
+	pDevice->CreateIndexBuffer(sizeof(DWORD) * (m_nMax * (4 + 2)),
+		D3DUSAGE_WRITEONLY,
+		D3DFMT_INDEX32,
+		D3DPOOL_MANAGED,
+		&m_pIdxBuffNormal,
+		nullptr);
+
+	// 通常描画のインデックスバッファをロックし、頂点情報へのポインタを取得
+	m_pIdxBuffNormal->Lock(0, 0, (void**)&pIdxAdd, 0);
+
+	// 6つのインデックスを四角形に指定
+	for (int nCntIdx = 0; nCntIdx < m_nMax * 4; nCntIdx += 4)
+	{
+		pIdxAdd[0] = nCntIdx + 2;
+		pIdxAdd[1] = nCntIdx;
+		pIdxAdd[2] = nCntIdx + 1;
+		pIdxAdd[3] = nCntIdx + 2;
+		pIdxAdd[4] = nCntIdx + 1;
+		pIdxAdd[5] = nCntIdx + 3;
+
+		pIdxAdd += 6;
+	}
+
+	// 通常描画のインデックスバッファをアンロックする
+	m_pIdxBuffNormal->Unlock();
+
 	// 影のインデックスバッファの設定
 	pDevice->CreateIndexBuffer(sizeof(DWORD) * (m_nMax * (4 + 2)),
 		D3DUSAGE_WRITEONLY,
@@ -295,14 +369,28 @@ void CEffectBatching::Uninit(void)
 		m_pIdxBuff = nullptr;
 	}
 
-	// 加算合成する頂点バッファの破棄
+	// 通常描画の頂点バッファの破棄
+	if (m_pVtxBuffNormal != nullptr)
+	{
+		m_pVtxBuffNormal->Release();
+		m_pVtxBuffNormal = nullptr;
+	}
+
+	// 通常描画のインデックスバッファの破棄
+	if (m_pIdxBuffNormal != nullptr)
+	{
+		m_pIdxBuffNormal->Release();
+		m_pIdxBuffNormal = nullptr;
+	}
+
+	// 影の頂点バッファの破棄
 	if (m_pVtxBuffShadow != nullptr)
 	{
 		m_pVtxBuffShadow->Release();
 		m_pVtxBuffShadow = nullptr;
 	}
 
-	// 加算合成するインデックスバッファの破棄
+	// 影のインデックスバッファの破棄
 	if (m_pIdxBuffShadow != nullptr)
 	{
 		m_pIdxBuffShadow->Release();
@@ -411,6 +499,11 @@ void CEffectBatching::Draw(void)
 
 	for (int nCntEffect = 0; nCntEffect < m_nNumUse; nCntEffect++)
 	{
+		if (m_vType.at(nCntEffect) != TYPE_ADD)
+		{// 違う種類
+			continue;
+		}
+
 		// ワールドマトリックスの初期化
 		D3DXMatrixIdentity(&m_vMtxWorld.at(nCntEffect));
 
@@ -492,6 +585,135 @@ void CEffectBatching::Draw(void)
 
 	// テクスチャの設定
 	pDevice->SetTexture(0, pTexture->GetAddress(m_nIdxTexture));
+
+	// エフェクトの描画
+	pDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,		// STRIPではなくLISTで指定
+		0, 0, nNumEffect * 4,								// 頂点数
+		0, nNumEffect * 2);									// 一枚のビルボードに三角形を2つ
+
+	// アルファテストを無効にする
+	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_ALWAYS);
+	pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
+
+	// Zテストを有効にする
+	pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
+	pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+	// レンダーステートを元に戻す
+	pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+
+	// ライティングオン
+	pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+}
+
+//========================================================================
+// バッチ描画エフェクトクラスの描画処理（通常描画）
+//========================================================================
+void CEffectBatching::DrawNormal(void)
+{
+	// ローカル変数宣言
+	CRenderer* pRenderer = CManager::GetRenderer();			// レンダラーへのポインタ
+	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();			// デバイスへのポインタ
+	CTexture* pTexture = CManager::GetTexture();
+	D3DXMATRIX mtxWorld;
+	D3DXMATRIX mtxRot, mtxTrans;	// 計算用マトリックス
+	D3DXMATRIX mtx;					// 単位行列
+	D3DXMATRIX mtxView;				// ビューマトリックス
+	VERTEX_3D* pVtx;				// 頂点情報の設定
+	int nNumEffect = 0;				// エフェクトの数
+
+	// ビューマトリックスを取得
+	pDevice->GetTransform(D3DTS_VIEW, &mtxView);
+
+	// 頂点バッファをロックし、頂点情報へのポインタを取得
+	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
+
+	for (int nCntEffect = 0; nCntEffect < m_nNumUse; nCntEffect++)
+	{
+		if (m_vType.at(nCntEffect) != TYPE_NORMAL)
+		{// 違う種類
+			continue;
+		}
+
+		// ワールドマトリックスの初期化
+		D3DXMatrixIdentity(&m_vMtxWorld.at(nCntEffect));
+
+		// カメラに対して正面に向ける
+		D3DXMatrixInverse(&m_vMtxWorld.at(nCntEffect), nullptr, &mtxView);	// 逆行列を求める
+
+		// 位置をリセット
+		m_vMtxWorld.at(nCntEffect)._41 = 0.0f;
+		m_vMtxWorld.at(nCntEffect)._42 = 0.0f;
+		m_vMtxWorld.at(nCntEffect)._43 = 0.0f;
+
+		// 位置を反映
+		D3DXMatrixTranslation(&mtxTrans, m_vPos.at(nCntEffect).x, m_vPos.at(nCntEffect).y, m_vPos.at(nCntEffect).z);
+		D3DXMatrixMultiply(&m_vMtxWorld.at(nCntEffect), &m_vMtxWorld.at(nCntEffect), &mtxTrans);
+
+		if (m_vbShadow.at(nCntEffect) == true)
+		{// 影がある場合
+			ShadowCalc(m_vMtxWorld.at(nCntEffect), m_vfRadius.at(nCntEffect));
+		}
+
+		// 頂点座標の設定
+		pVtx[0].pos = D3DXVECTOR3(-m_vfRadius.at(nCntEffect), m_vfRadius.at(nCntEffect), 0.0f);
+		pVtx[1].pos = D3DXVECTOR3(m_vfRadius.at(nCntEffect), m_vfRadius.at(nCntEffect), 0.0f);
+		pVtx[2].pos = D3DXVECTOR3(-m_vfRadius.at(nCntEffect), -m_vfRadius.at(nCntEffect), 0.0f);
+		pVtx[3].pos = D3DXVECTOR3(m_vfRadius.at(nCntEffect), -m_vfRadius.at(nCntEffect), 0.0f);
+
+		// 頂点座標の設定
+		pVtx[0].pos = *D3DXVec3TransformCoord(&pVtx[0].pos, &pVtx[0].pos, &m_vMtxWorld.at(nCntEffect));
+		pVtx[1].pos = *D3DXVec3TransformCoord(&pVtx[1].pos, &pVtx[1].pos, &m_vMtxWorld.at(nCntEffect));
+		pVtx[2].pos = *D3DXVec3TransformCoord(&pVtx[2].pos, &pVtx[2].pos, &m_vMtxWorld.at(nCntEffect));
+		pVtx[3].pos = *D3DXVec3TransformCoord(&pVtx[3].pos, &pVtx[3].pos, &m_vMtxWorld.at(nCntEffect));
+
+		// 頂点カラーの設定
+		pVtx[0].col = m_vCol.at(nCntEffect);
+		pVtx[1].col = m_vCol.at(nCntEffect);
+		pVtx[2].col = m_vCol.at(nCntEffect);
+		pVtx[3].col = m_vCol.at(nCntEffect);
+
+		// ポインタを進める
+		pVtx += 4;
+
+		nNumEffect++;
+	}
+
+	// 頂点バッファをアンロック
+	m_pVtxBuff->Unlock();
+
+	// ライティングオフ
+	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+
+	// Zテストを無効にする
+	pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESS);
+	pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+	// アルファテストを有効にする
+	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	pDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+	pDevice->SetRenderState(D3DRS_ALPHAREF, 0);
+
+	//ワールドマトリックスの初期化
+	D3DXMatrixIdentity(&mtx);
+
+	// ワールドマトリックスの設定
+	pDevice->SetTransform(D3DTS_WORLD, &mtx);
+
+	// 頂点バッファをデータストリームに設定
+	pDevice->SetStreamSource(0, m_pVtxBuff, 0, sizeof(VERTEX_3D));
+
+	// インデックスバッファをデータストリームに設定
+	pDevice->SetIndices(m_pIdxBuff);
+
+	// 頂点フォーマットの設定
+	pDevice->SetFVF(FVF_VERTEX_3D);
+
+	// テクスチャの設定
+	pDevice->SetTexture(0, nullptr);
 
 	// エフェクトの描画
 	pDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,		// STRIPではなくLISTで指定
@@ -625,7 +847,7 @@ void CEffectBatching::ShadowCalc(D3DXMATRIX matrix, const float fRadius)
 //========================================================================
 // バッチ描画エフェクトを設定
 //========================================================================
-void CEffectBatching::Set(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const float fSpeed, const float fSpeedInertia,
+void CEffectBatching::Set(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const float fSpeed, const float fSpeedInertia, const int type,
 	const float fGravity, const float fBounce, const int nLife, const float fRadius, const float fAddRadius, const float fMinusAlpha,
 	const D3DXCOLOR col, const bool bShadow, const bool bHoming,
 	CObject* HomingObj, D3DXVECTOR3 HomingPos, const float fSpeedHoming)
@@ -640,6 +862,7 @@ void CEffectBatching::Set(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const f
 	m_vMove.push_back(move);
 	m_vfSpeed.push_back(fSpeed);
 	m_vfSpeedInertia.push_back(fSpeedInertia);
+	m_vType.push_back(type);
 	m_vfGravity.push_back(fGravity);
 	m_vfBounce.push_back(fBounce);
 	m_vnLife.push_back(nLife);
@@ -671,6 +894,7 @@ void CEffectBatching::Reset(void)
 	m_vMove.clear();
 	m_vfSpeed.clear();
 	m_vfSpeedInertia.clear();
+	m_vType.clear();
 	m_vfGravity.clear();
 	m_vfBounce.clear();
 	m_vnLife.clear();
@@ -699,6 +923,7 @@ void CEffectBatching::SwapAndPop(const int nIdx)
 		m_vMove.pop_back();
 		m_vfSpeed.pop_back();
 		m_vfSpeedInertia.pop_back();
+		m_vType.pop_back();
 		m_vfGravity.pop_back();
 		m_vfBounce.pop_back();
 		m_vnLife.pop_back();
@@ -735,11 +960,15 @@ void CEffectBatching::SwapAndPop(const int nIdx)
 		m_vfSpeedInertia.at(nIdx) = m_vfSpeedInertia.back();
 		m_vfSpeedInertia.pop_back();
 
+		// 種類
+		m_vType.at(nIdx) = m_vType.back();
+		m_vType.pop_back();
+		
 		// 重力の有無
 		m_vfGravity.at(nIdx) = m_vfGravity.back();
 		m_vfGravity.pop_back();
 		
-		// 重力の有無
+		// 跳ね返り
 		m_vfBounce.at(nIdx) = m_vfBounce.back();
 		m_vfBounce.pop_back();
 

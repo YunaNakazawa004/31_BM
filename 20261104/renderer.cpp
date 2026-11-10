@@ -178,6 +178,9 @@ void CRenderer::Draw(void)
 
 			// バッチ描画影エフェクトの描画
 			pEffectBatching->DrawShadow();
+			
+			// バッチ描画エフェクトの通常描画
+			pEffectBatching->DrawNormal();
 
 			// バッチ描画エフェクトの描画
 			pEffectBatching->Draw();

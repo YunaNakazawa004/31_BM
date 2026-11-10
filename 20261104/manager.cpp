@@ -257,7 +257,7 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	// バッチ描画エフェクトの生成
 	if (m_pEffectBatching == nullptr)
 	{// NULLチェック
-		m_pEffectBatching = CEffectBatching::Create(10000);
+		m_pEffectBatching = CEffectBatching::Create(100000);
 
 		if (m_pEffectBatching == nullptr)
 		{// NULLチェック

@@ -19,8 +19,8 @@ public:
 	CSand(const int nPriority = PRIORITY_2);
 	~CSand();
 
-	static CSand* Create(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor);
-	HRESULT Init(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor);
+	static CSand* Create(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor, const float fStrength);
+	HRESULT Init(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor, const float fStrength);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);

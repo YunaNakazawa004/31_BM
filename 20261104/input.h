@@ -156,7 +156,7 @@ public:
 	bool GetRepeat(int nIdx, JOYKEY key);
 	bool GetStick(int nIdx, JOYKEY key, int* pValueH, int* pValueV);
 	bool GetShoulder(int nIdx, JOYKEY key, int* pValueR, int* pValueL);
-	bool GetStickSlow(int nIdx);
+	bool GetStickSlow(int nIdx, int nCount);
 	void SetVibration(int nIdx, WORD wLeftVibSpeed, WORD wRightVibSpeed, int nVibCount);
 	void UpdateVibration(void);
 	void UninitVibration(void);

@@ -16,6 +16,7 @@
 
 #include "camera.h"
 #include "line.h"
+#include "sand.h"
 
 //************************************************************************
 // マクロ定義
@@ -116,6 +117,7 @@ CWind::CWind(const int nPriority) :CObjectX(nPriority)
 	m_fStrength = 0.0f;
 	m_fAngle = 0.0f;
 	m_fAffect = 0.0f;
+	m_nCounter = 0;
 }
 
 //========================================================================
@@ -140,6 +142,7 @@ HRESULT CWind::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fS
 	m_fStrength = fStrength;
 	m_fAngle = 0.0f;
 	m_fAffect = fAffect;
+	m_nCounter = 0;
 
 	// サイズ
 	D3DXVECTOR3 scale = GetScale();
@@ -200,6 +203,13 @@ void CWind::Update(void)
 		m_rotDest.y += 0.035f;
 	}
 
+	// 表示切替
+	if (pInputKeyboard->GetTrigger(DIK_TAB) == true)
+	{// 表示切替
+		SwapDisp();
+	}
+
+	// 風の向きベクトルを計算
 	m_vec.x = sinf(D3DX_PI + rot.y) * sinf((D3DX_PI * 0.5f) - m_fAngle);
 	m_vec.y = cosf((D3DX_PI * 0.5f) - m_fAngle);
 	m_vec.z = cosf(D3DX_PI + rot.y) * sinf((D3DX_PI * 0.5f) - m_fAngle);
@@ -224,6 +234,18 @@ void CWind::Update(void)
 
 	// 位置を適用
 	SetPosition(pos);
+
+	if (m_nCounter % 300 == 0)
+	{// 一定間隔
+		D3DXVECTOR3 posP = GetPosition();
+		posP.x += sinf(m_rotDest.y) * 100.0f;
+		posP.z += cosf(m_rotDest.y) * 100.0f;
+
+		// 砂パーティクル
+		CSand::Create(posP, D3DXVECTOR3(sinf(m_rotDest.y), 0.0f, cosf(m_rotDest.y)), m_fStrength);
+	}
+
+	m_nCounter++;
 }
 
 //========================================================================
@@ -295,10 +317,22 @@ void CWind::StickControll(CInputJoypad::JOYKEY joykey)
 
 		m_move.x += sinf(fAngle + CameraRot.y) * 0.3f;
 		m_move.z += cosf(fAngle + CameraRot.y) * 0.3f;
-	}
 
-	// 正規化
-	D3DXVec3Normalize(&m_vec, &m_vec);
+		if (pInputJoypad->GetStickSlow(0, 10))
+		{// 一定間隔
+			D3DXVECTOR3 posP = GetPosition();
+			posP.x += sinf(m_rotDest.y) * 100.0f;
+			posP.z += cosf(m_rotDest.y) * 100.0f;
+
+			D3DXVECTOR3 nor = m_move;
+			D3DXVec3Normalize(&nor, &nor);
+
+			// 砂パーティクル
+			CSand::Create(posP, nor, m_fStrength);
+
+			m_nCounter = 0;
+		}
+	}
 }
 
 //========================================================================

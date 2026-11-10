@@ -383,7 +383,7 @@ void CPlayer::Update(void)
 	m_pWindRight->WindAffect(&pos, &m_vecAxis, &m_rotDest, &m_fValueRot);
 
 	// •—‚ÌŽ©“®ˆÚ“®
-	CManager::GetWind()->AutoMove(pos - m_posOld);
+	CManager::GetWind()->AutoMove(D3DXVECTOR3(0.0f, 0.0f, pos.z - m_posOld.z));
 	m_pWindLeft->AutoMove(pos - m_posOld);
 	m_pWindRight->AutoMove(pos - m_posOld);
 
@@ -655,7 +655,7 @@ void CPlayer::SubControll(void)
 
 	if (pInputKeyboard->GetTrigger(DIK_NUMPAD3) == true)
 	{
-		CSand::Create(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(1.0f, 0.1f, 0.0f));
+		CSand::Create(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(1.0f, 0.1f, 0.0f), 3.0f);
 	}
 
 	if (pInputKeyboard->GetRepeat(DIK_RIGHT) == true)

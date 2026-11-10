@@ -17,7 +17,7 @@
 //========================================================================
 // 砂パーティクルクラスの生成処理
 //========================================================================
-CSand* CSand::Create(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor)
+CSand* CSand::Create(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor, const float fStrength)
 {
 #ifndef LIST
 	if (CObject::GetNumAll() >= MAX_OBJECT)
@@ -39,7 +39,7 @@ CSand* CSand::Create(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor)
 	if (pSand != nullptr)
 	{// NULLチェック
 		// 初期化処理
-		if (FAILED(pSand->Init(posP, nor)))
+		if (FAILED(pSand->Init(posP, nor, fStrength)))
 		{// もし失敗した場合
 			OutputDebugStringA("! ! ! 砂パーティクルの初期化に失敗しました ! ! !\n");
 
@@ -75,13 +75,11 @@ CSand::~CSand()
 //========================================================================
 // 砂パーティクルクラスの初期化処理
 //========================================================================
-HRESULT CSand::Init(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor)
+HRESULT CSand::Init(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor, const float fStrength)
 {
 	// 初期化処理
-	CParticleBatching::Init(posP, 1, 100, nor, D3DXVECTOR3(D3DX_PI * 0.2f, D3DX_PI * 0.1f, D3DX_PI * 0.2f), 2.0f, 0.0f, 0.001f,
-		CParticleBatching::TYPE_SAND, -0.001f, -0.0f, 10000, 5.0f, 0.001f, D3DXCOLOR(0.3f, 0.3f, 0.0f, 1.0f), 500.0f);
-
-	// 砂パーティクルクラスの値を初期化
+	CParticleBatching::Init(posP, 1, 20 * fStrength, nor, D3DXVECTOR3(D3DX_PI * 0.8f, D3DX_PI * 0.5f, D3DX_PI * 0.8f), 2.0f, -0.001f, 0.001f,
+		CParticleBatching::TYPE_SAND, CEffectBatching::TYPE_NORMAL, -0.001f, -0.1f, 100 * fStrength, 6.0f, 0.003f, COLOR_BEIGE, 50.0f);
 
 	return S_OK;
 }
@@ -93,9 +91,6 @@ void CSand::Uninit(void)
 {
 	// 終了処理
 	CParticleBatching::Uninit();
-
-	// 自分自身を破棄
-	CObject::Release();
 }
 
 //========================================================================

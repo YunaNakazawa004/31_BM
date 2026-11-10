@@ -40,6 +40,7 @@ private:
 	float m_fStrength;			// 風の強さ
 	float m_fAngle;				// Y軸に対する傾き
 	float m_fAffect;			// 影響力
+	int m_nCounter;				// 汎用カウンター
 };
 
 #endif

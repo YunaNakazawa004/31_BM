@@ -20,7 +20,7 @@
 // バッチ描画パーティクルクラスの生成処理
 //========================================================================
 CParticleBatching* CParticleBatching::Create(const D3DXVECTOR3 posP, const int nLifeP, const int nValue, const D3DXVECTOR3 nor, const D3DXVECTOR3 angle,
-	const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP,
+	const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, CEffectBatching::TYPE type,
 	const float fGravity, const float fBounce, const int nLifeE, const float fSpeedE, const float fSpeedEInertia, const D3DXCOLOR col, const float fDist,
 	const bool bShadow, const bool bHoming, CObject* HomingObj, D3DXVECTOR3 HomingPos, const float fSpeedHoming)
 {
@@ -44,7 +44,7 @@ CParticleBatching* CParticleBatching::Create(const D3DXVECTOR3 posP, const int n
 	if (pParticleBatching != nullptr)
 	{// NULLチェック
 		// 初期化処理
-		if (FAILED(pParticleBatching->Init(posP, nLifeP, nValue, nor, angle, fRadius, fAddRadius, fMinusAlpha, typeP,
+		if (FAILED(pParticleBatching->Init(posP, nLifeP, nValue, nor, angle, fRadius, fAddRadius, fMinusAlpha, typeP,type,
 			fGravity, fBounce, nLifeE, fSpeedE, fSpeedEInertia, col, fDist, bShadow, bHoming, HomingObj, HomingPos, fSpeedHoming)))
 		{// もし失敗した場合
 			OutputDebugStringA("! ! ! バッチ描画パーティクルの初期化に失敗しました ! ! !\n");
@@ -102,7 +102,7 @@ CParticleBatching::~CParticleBatching()
 // バッチ描画パーティクルクラスの初期化処理
 //========================================================================
 HRESULT CParticleBatching::Init(const D3DXVECTOR3 posP, const int nLifeP, const int nValue, const D3DXVECTOR3 nor, const D3DXVECTOR3 angle,
-	const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP,
+	const float fRadius, const float fAddRadius, const float fMinusAlpha, CParticleBatching::TYPE typeP, CEffectBatching::TYPE type,
 	const float fGravity, const float fBounce, const int nLifeE, const float fSpeedE, const float fSpeedEInertia, const D3DXCOLOR col, const float fDist,
 	const bool bShadow, const bool bHoming, CObject* HomingObj, D3DXVECTOR3 HomingPos, const float fSpeedHoming)
 {
@@ -116,6 +116,7 @@ HRESULT CParticleBatching::Init(const D3DXVECTOR3 posP, const int nLifeP, const 
 	m_fAddRadius = fAddRadius;
 	m_fMinusAlpha = fMinusAlpha;
 	m_typeP = typeP;
+	m_type = type;
 	m_fGravity = fGravity;
 	m_fBounce = fBounce;
 	m_nLifeE = nLifeE;
@@ -200,15 +201,15 @@ void CParticleBatching::Update(void)
 
 			D3DXVec3Normalize(&rot, &rot);						// 正規化
 
-			pos.x = m_posP.x + rot.x * m_fDist;
+			pos.x = m_posP.x + rot.x * m_fDist/*(m_fDist * ((float)(rand() % 5 + 7) * 0.1f))*/;
 			pos.y = m_posP.y + rot.y;
-			pos.z = m_posP.z + rot.z * m_fDist;
+			pos.z = m_posP.z + rot.z * m_fDist/*(m_fDist * ((float)(rand() % 5 + 7) * 0.1f))*/;
 
 			break;
 		}
 
 		// バッチ描画エフェクトの生成
-		CManager::GetEffectBatching()->Set(pos, rot, m_fSpeedE, m_fSpeedEInertia, m_fGravity, m_fBounce, m_nLifeE, m_fRadius,
+		CManager::GetEffectBatching()->Set(pos, rot, m_fSpeedE, m_fSpeedEInertia, m_type, m_fGravity, m_fBounce, m_nLifeE, m_fRadius,
 			m_fAddRadius, m_fMinusAlpha, m_col, m_bShadow, m_bHoming, m_HomingObj, m_HomingPos, m_fSpeedHoming);
 	}
 
