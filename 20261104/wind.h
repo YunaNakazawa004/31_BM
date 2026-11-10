@@ -12,6 +12,11 @@
 #include "input.h"
 
 //************************************************************************
+// 前方宣言
+//************************************************************************
+class CMeshOrbit;
+
+//************************************************************************
 // 風クラス
 //************************************************************************
 class CWind : public CObjectX
@@ -28,9 +33,12 @@ public:
 	void Update(void);
 	void Draw(void);
 
+	D3DXMATRIX MatrixCalc(void);
+
 	void WindAffect(D3DXVECTOR3* pPos, D3DXVECTOR3* pVecAxis, D3DXVECTOR3* pRotDest, float* pValueRot);
 	void StickControll(CInputJoypad::JOYKEY joykey);
 	void AutoMove(const D3DXVECTOR3 move);
+	void RandomRot(const float fValue);
 
 private:
 	static int m_nIdxModel;		// モデルのインデックス
@@ -40,6 +48,9 @@ private:
 	float m_fStrength;			// 風の強さ
 	float m_fAngle;				// Y軸に対する傾き
 	float m_fAffect;			// 影響力
+	CMeshOrbit* m_pMeshOrbit;	// 軌跡
+	float m_fFlow;				// 軌跡の波うち
+	D3DXVECTOR3 m_randPos;		// 軌跡の場所
 	int m_nCounter;				// 汎用カウンター
 };
 

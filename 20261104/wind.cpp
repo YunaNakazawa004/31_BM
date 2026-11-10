@@ -17,6 +17,7 @@
 #include "camera.h"
 #include "line.h"
 #include "sand.h"
+#include "meshorbit.h"
 
 //************************************************************************
 // マクロ定義
@@ -117,6 +118,9 @@ CWind::CWind(const int nPriority) :CObjectX(nPriority)
 	m_fStrength = 0.0f;
 	m_fAngle = 0.0f;
 	m_fAffect = 0.0f;
+	m_pMeshOrbit = nullptr;
+	m_fFlow = 0.0f;
+	m_randPos = DEFAULT_VECTOR3;
 	m_nCounter = 0;
 }
 
@@ -142,6 +146,8 @@ HRESULT CWind::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fS
 	m_fStrength = fStrength;
 	m_fAngle = 0.0f;
 	m_fAffect = fAffect;
+	m_fFlow = 0.0f;
+	m_randPos = DEFAULT_VECTOR3;
 	m_nCounter = 0;
 
 	// サイズ
@@ -150,6 +156,9 @@ HRESULT CWind::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fS
 	scale.y = (fStrength * DEFAULT_SIZE) / DEFAULT_SIZE;
 	scale.z = (fStrength * DEFAULT_SIZE) / DEFAULT_SIZE;
 	SetScale(scale);
+
+	// 表示設定
+	SetDisp(false);
 
 	return S_OK;
 }
@@ -245,6 +254,33 @@ void CWind::Update(void)
 		CSand::Create(posP, D3DXVECTOR3(sinf(m_rotDest.y), 0.0f, cosf(m_rotDest.y)), m_fStrength);
 	}
 
+	// 軌跡を計算
+	D3DXMATRIX mtxWorld = MatrixCalc();
+
+	if (m_pMeshOrbit == nullptr)
+	{// 最初は生成
+		m_randPos.x = (float)(rand() % 60 - 30);
+		m_randPos.y = 30.0f;
+		m_randPos.z = (float)(rand() % 60 - 30);
+
+		m_pMeshOrbit = CMeshOrbit::Create(D3DXVECTOR3(m_randPos.x, m_randPos.y + sinf(m_fFlow), m_randPos.z), m_randPos,
+			COLOR_WHITE, COLOR_WHITE, &mtxWorld, nullptr, CObject::TYPE_MESHORBIT, 5);
+	}
+	else
+	{// 存在するならそれを使う
+		m_pMeshOrbit->SetPosition(D3DXVECTOR3(m_randPos.x, m_randPos.y + sinf(m_fFlow), m_randPos.z), m_randPos,
+			COLOR_WHITE, COLOR_WHITE, &mtxWorld);
+	}
+
+	if (sinf(m_fFlow) < 0.01f && sinf(m_fFlow) > -0.01f)
+	{// 一定間隔で
+		m_randPos.x = (float)(rand() % 60 - 30);
+		m_randPos.y = 30.0f;
+		m_randPos.z = (float)(rand() % 60 - 30);
+	}
+
+	m_fFlow += 0.02f;
+
 	m_nCounter++;
 }
 
@@ -264,6 +300,35 @@ void CWind::Draw(void)
 
 	// 頂点法線正規化をオフ
 	pDevice->SetRenderState(D3DRS_NORMALIZENORMALS, FALSE);
+}
+
+//========================================================================
+// マトリックスを計算
+//========================================================================
+D3DXMATRIX CWind::MatrixCalc(void)
+{
+	D3DXMATRIX mtxWorld, mtxRot, mtxTrans, mtxScale;		// 計算用マトリックス
+	D3DXVECTOR3 pos, rot, scale;	// 情報
+	scale = GetScale();				// スケールを取得
+	rot = GetRotation();			// 向きを取得
+	pos = GetPosition();			// 位置を取得
+
+	// ワールドマトリックスの初期化
+	D3DXMatrixIdentity(&mtxWorld);
+
+	// スケールを反映
+	D3DXMatrixScaling(&mtxScale, scale.x, scale.y, scale.z);
+	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxScale);
+
+	// 向きを反映
+	D3DXMatrixRotationYawPitchRoll(&mtxRot, rot.y, rot.x, rot.z);
+	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxRot);
+
+	// 位置を反映
+	D3DXMatrixTranslation(&mtxTrans, pos.x, pos.y, pos.z);
+	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTrans);
+
+	return mtxWorld;
 }
 
 //========================================================================
@@ -346,4 +411,12 @@ void CWind::AutoMove(const D3DXVECTOR3 move)
 
 	// 位置を適用
 	SetPosition(pos);
+}
+
+//========================================================================
+// ランダムに回転
+//========================================================================
+void CWind::RandomRot(const float fValue)
+{
+	m_rotDest.y = RANDOM_ROT((int)(fValue * 100.0f));
 }

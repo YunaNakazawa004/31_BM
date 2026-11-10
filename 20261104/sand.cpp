@@ -78,8 +78,8 @@ CSand::~CSand()
 HRESULT CSand::Init(const D3DXVECTOR3 posP, const D3DXVECTOR3 nor, const float fStrength)
 {
 	// èâä˙âªèàóù
-	CParticleBatching::Init(posP, 1, 20 * fStrength, nor, D3DXVECTOR3(D3DX_PI * 0.8f, D3DX_PI * 0.5f, D3DX_PI * 0.8f), 2.0f, -0.001f, 0.001f,
-		CParticleBatching::TYPE_SAND, CEffectBatching::TYPE_NORMAL, -0.001f, -0.1f, 100 * fStrength, 6.0f, 0.003f, COLOR_BEIGE, 50.0f);
+	CParticleBatching::Init(posP, 1, 20 * (int)fStrength, nor, D3DXVECTOR3(D3DX_PI * 0.7f, D3DX_PI * 0.5f, D3DX_PI * 0.7f), 2.0f, 0.001f, 0.001f,
+		CParticleBatching::TYPE_SAND, CEffectBatching::TYPE_NORMAL, -0.001f, -0.1f, 100 * (int)fStrength, 4.0f, 0.003f, COLOR_BEIGE, 50.0f);
 
 	return S_OK;
 }

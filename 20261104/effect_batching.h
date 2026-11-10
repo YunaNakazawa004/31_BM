@@ -56,7 +56,7 @@ public:
 	void SwapAndPop(const int nIdx);
 
 private:
-	static int m_nIdxTexture;					// テクスチャのインデックス
+	static int m_aIdxTexture[2];				// テクスチャのインデックス
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;			// 頂点バッファへのポインタ
 	LPDIRECT3DINDEXBUFFER9 m_pIdxBuff;			// インデックスバッファへのポインタ
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuffNormal;	// 通常描画の頂点バッファへのポインタ

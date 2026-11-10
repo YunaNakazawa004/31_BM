@@ -442,7 +442,6 @@ void CPlayer::Update(void)
 	pDebug->Print("ˆÊ’u : ( %f %f %f )\n", pos.x, pos.y, pos.z);
 	pDebug->Print("ˆÚ“®ƒxƒNƒgƒ‹ : ( %f %f %f )\n", m_move.x, m_move.y, m_move.z);
 	pDebug->Print("Œ»Ý‚ÌŒü‚« : ( %f )\n", m_rotDest.y);
-	pDebug->Print("‘O‰ñ‚ÌŒü‚« : ( %f )\n", m_rotOld.y);
 	pDebug->Print("‰ñ“]Ž² : ( %f %f %f )\n", m_vecAxis.x, m_vecAxis.y, m_vecAxis.z);
 	pDebug->Print("‰ñ“]Šp : ( %f )\n", m_fValueRot);
 	pDebug->Print("ˆÚ“®—Ê : ( %f )\n", MOVEMENT);
@@ -656,6 +655,11 @@ void CPlayer::SubControll(void)
 	if (pInputKeyboard->GetTrigger(DIK_NUMPAD3) == true)
 	{
 		CSand::Create(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(1.0f, 0.1f, 0.0f), 3.0f);
+	}
+	
+	if (pInputKeyboard->GetTrigger(DIK_NUMPAD9) == true)
+	{
+		CManager::GetWind()->RandomRot(D3DX_PI * 0.8f);
 	}
 
 	if (pInputKeyboard->GetRepeat(DIK_RIGHT) == true)

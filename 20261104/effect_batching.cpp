@@ -25,7 +25,7 @@
 //************************************************************************
 // 静的メンバ変数宣言
 //************************************************************************
-int CEffectBatching::m_nIdxTexture = -1;				// テクスチャのインデックス
+int CEffectBatching::m_aIdxTexture[2] = {};				// テクスチャのインデックス
 
 //========================================================================
 // テクスチャの生成
@@ -36,9 +36,10 @@ HRESULT CEffectBatching::Load(void)
 	CTexture* pTexture = CManager::GetTexture();			// テクスチャへのポインタ
 
 	// テクスチャの設定
-	m_nIdxTexture = pTexture->Register("data\\TEXTURE\\effect000.jpg");
+	m_aIdxTexture[0] = pTexture->Register("data\\TEXTURE\\effect000.jpg");
+	m_aIdxTexture[1] = pTexture->Register("data\\TEXTURE\\spray000.png");
 
-	if (m_nIdxTexture == -1)
+	if (m_aIdxTexture[0] == -1 || m_aIdxTexture[1] == -1)
 	{// テクスチャが設定できていない
 		OutputDebugStringA("! ! ! テクスチャの設定に失敗しました ! ! !\n");
 
@@ -54,7 +55,7 @@ HRESULT CEffectBatching::Load(void)
 void CEffectBatching::Unload(void)
 {
 	// テクスチャのインデックスを削除
-	m_nIdxTexture = -1;
+	memset(&m_aIdxTexture[0], -1, sizeof m_aIdxTexture);
 }
 
 //========================================================================
@@ -584,7 +585,7 @@ void CEffectBatching::Draw(void)
 	pDevice->SetFVF(FVF_VERTEX_3D);
 
 	// テクスチャの設定
-	pDevice->SetTexture(0, pTexture->GetAddress(m_nIdxTexture));
+	pDevice->SetTexture(0, pTexture->GetAddress(m_aIdxTexture[TYPE_ADD]));
 
 	// エフェクトの描画
 	pDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,		// STRIPではなくLISTで指定
@@ -713,7 +714,7 @@ void CEffectBatching::DrawNormal(void)
 	pDevice->SetFVF(FVF_VERTEX_3D);
 
 	// テクスチャの設定
-	pDevice->SetTexture(0, nullptr);
+	pDevice->SetTexture(0, pTexture->GetAddress(m_aIdxTexture[TYPE_NORMAL]));
 
 	// エフェクトの描画
 	pDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,		// STRIPではなくLISTで指定
