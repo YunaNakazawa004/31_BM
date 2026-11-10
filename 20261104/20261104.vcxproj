@@ -162,6 +162,8 @@
     <ClCompile Include="meshorbit.cpp" />
     <ClCompile Include="meshring.cpp" />
     <ClCompile Include="meshwallM.cpp" />
+    <ClCompile Include="model.cpp" />
+    <ClCompile Include="motion.cpp" />
     <ClCompile Include="MTrenderer.cpp" />
     <ClCompile Include="number.cpp" />
     <ClCompile Include="object.cpp" />
@@ -202,6 +204,8 @@
     <ClInclude Include="meshorbit.h" />
     <ClInclude Include="meshring.h" />
     <ClInclude Include="meshwallM.h" />
+    <ClInclude Include="model.h" />
+    <ClInclude Include="motion.h" />
     <ClInclude Include="MTrenderer.h" />
     <ClInclude Include="number.h" />
     <ClInclude Include="object.h" />
