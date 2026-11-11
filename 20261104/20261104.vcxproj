@@ -146,6 +146,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bird.cpp" />
+    <ClCompile Include="bone.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="debugproc.cpp" />
     <ClCompile Include="effect2D.cpp" />
@@ -173,6 +175,7 @@
     <ClCompile Include="object3D_Multi.cpp" />
     <ClCompile Include="objectBillboard.cpp" />
     <ClCompile Include="objectX.cpp" />
+    <ClCompile Include="part.cpp" />
     <ClCompile Include="particle2D.cpp" />
     <ClCompile Include="particle3D.cpp" />
     <ClCompile Include="particleX.cpp" />
@@ -188,6 +191,8 @@
     <ClCompile Include="Xmodel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bird.h" />
+    <ClInclude Include="bone.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="debugproc.h" />
     <ClInclude Include="effect2D.h" />
@@ -215,6 +220,7 @@
     <ClInclude Include="object3D_Multi.h" />
     <ClInclude Include="objectBillboard.h" />
     <ClInclude Include="objectX.h" />
+    <ClInclude Include="part.h" />
     <ClInclude Include="particle2D.h" />
     <ClInclude Include="particle3D.h" />
     <ClInclude Include="particleX.h" />

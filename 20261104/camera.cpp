@@ -497,7 +497,6 @@ void CCamera::Update(void)
 			m_posRDest.x = m_posVDest.x + sinf(m_rot.y) * m_fDistance * sinf((D3DX_PI * 0.5f) - m_fAngle);
 			m_posRDest.z = m_posVDest.z + cosf(m_rot.y) * m_fDistance * sinf((D3DX_PI * 0.5f) - m_fAngle);
 		}
-#endif
 
 		// 注視点移動
 		if (pInputKeyboard->GetPress(DIK_T) == true)
@@ -592,6 +591,7 @@ void CCamera::Update(void)
 			m_posVDest.x = m_posR.x + sinf(D3DX_PI + m_rot.y) * m_fDistance * sinf((D3DX_PI * 0.5f) - m_fAngle);
 			m_posVDest.z = m_posR.z + cosf(D3DX_PI + m_rot.y) * m_fDistance * sinf((D3DX_PI * 0.5f) - m_fAngle);
 		}
+#endif
 
 		// カメラのズーム
 		if (pInputMouse->GetWheel() != 0)

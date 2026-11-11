@@ -9,7 +9,7 @@
 #include "debugproc.h"
 #include "manager.h"
 
-#include "model.h"
+#include "part.h"
 
 //========================================================================
 // モーションの生成
@@ -50,8 +50,8 @@ CMotion::CMotion()
 	// モーションクラスの値をクリア
 	memset(&m_aInfo[0], NULL, sizeof m_aInfo);
 	m_nNumAll = 0;
-	m_ppModel = NULL;
-	m_nNumModel = 0;
+	m_ppPart = nullptr;
+	m_nNumPart = 0;
 
 	m_nType = 0;
 	m_bLoop = false;
@@ -85,8 +85,8 @@ HRESULT CMotion::Init(void)
 	// モーションクラスの値を初期化
 	memset(&m_aInfo[0], NULL, sizeof m_aInfo);
 	m_nNumAll = 0;
-	m_ppModel = NULL;
-	m_nNumModel = 0;
+	m_ppPart = nullptr;
+	m_nNumPart = 0;
 
 	m_nType = -1;
 	m_bLoop = false;
@@ -112,7 +112,7 @@ HRESULT CMotion::Init(void)
 //========================================================================
 void CMotion::Uninit(void)
 {
-	m_ppModel = NULL;
+	m_ppPart = NULL;
 }
 
 //========================================================================
@@ -128,19 +128,19 @@ void CMotion::SetInfo(const INFO info)
 }
 
 //========================================================================
-// モデル情報の設定
+// パーツ情報の設定
 //========================================================================
-void CMotion::SetModel(CModel** ppModel, const int nNumModel)
+void CMotion::SetPart(CPart** ppPart, const int nNumPart)
 {
-	if (ppModel != NULL)
+	if (ppPart != NULL)
 	{// NULLチェック
 		// モデル情報を設定
-		m_ppModel = ppModel;
-		m_nNumModel = nNumModel;
+		m_ppPart = ppPart;
+		m_nNumPart = nNumPart;
 	}
 	else
 	{// 渡されたポインタがNULL
-		OutputDebugStringA("! ! ! モデルの情報が設定できませんでした ! ! !\n");
+		OutputDebugStringA("! ! ! パーツの情報が設定できませんでした ! ! !\n");
 	}
 }
 
@@ -177,7 +177,7 @@ void CMotion::Set(const int nType, bool bBlend, int nFrameBlend)
 			m_bBlend = bBlend;
 
 			// 全モデル(パーツ)の初期設定
-			for (int nCntModel = 0; nCntModel < m_nNumModel; nCntModel++)
+			for (int nCntModel = 0; nCntModel < m_nNumPart; nCntModel++)
 			{
 				// ローカル変数
 				D3DXVECTOR3 pos, rot;
@@ -193,8 +193,8 @@ void CMotion::Set(const int nType, bool bBlend, int nFrameBlend)
 				rot.z = m_aInfo[m_nType].aKeyInfo[0].aKey[nCntModel].fRotZ;
 
 				// パーツの位置/向きを設定
-				m_ppModel[nCntModel]->SetPosition(pos + m_ppModel[nCntModel]->GetPosOff());
-				m_ppModel[nCntModel]->SetRotation(rot + m_ppModel[nCntModel]->GetRotOff());
+				m_ppPart[nCntModel]->SetPosition(pos + m_ppPart[nCntModel]->GetPosOff());
+				m_ppPart[nCntModel]->SetRotation(rot + m_ppPart[nCntModel]->GetRotOff());
 			}
 		}
 	}
@@ -209,12 +209,11 @@ void CMotion::Update(void)
 	CDebugProc* pDebugProc = CManager::GetDebugProc();					// デバッグ表示の取得
 
 	// 全モデル(パーツ)の更新
-	for (int nCntModel = 0; nCntModel < m_nNumModel; nCntModel++)
+	for (int nCntPart = 0; nCntPart < m_nNumPart; nCntPart++)
 	{
 		// ローカル変数宣言
 		KEY* pKey;
 		KEY* pKeyNext;
-		CModel* pModel;
 		D3DXVECTOR3 posCurrent, rotCurrent;
 		D3DXVECTOR3 posDest, rotDest;
 		float fDiffKey, fRateKey;
@@ -238,13 +237,10 @@ void CMotion::Update(void)
 		}
 
 		// 現在のキーのポインタ
-		pKey = &m_aInfo[m_nType].aKeyInfo[m_nKey].aKey[nCntModel];
+		pKey = &m_aInfo[m_nType].aKeyInfo[m_nKey].aKey[nCntPart];
 
 		// 次のキーのポインタ
-		pKeyNext = &m_aInfo[m_nType].aKeyInfo[nNextKey].aKey[nCntModel];
-
-		// モデルのポインタ
-		pModel = m_ppModel[nCntModel];
+		pKeyNext = &m_aInfo[m_nType].aKeyInfo[nNextKey].aKey[nCntPart];
 
 		if (m_bBlend == true)
 		{// ブレンドあり
@@ -277,10 +273,10 @@ void CMotion::Update(void)
 			}
 
 			// 現在のキーのポインタ
-			pKeyBlend = &m_aInfo[m_nTypeBlend].aKeyInfo[m_nKeyBlend].aKey[nCntModel];
+			pKeyBlend = &m_aInfo[m_nTypeBlend].aKeyInfo[m_nKeyBlend].aKey[nCntPart];
 
 			// 次のキーのポインタ
-			pKeyNextBlend = &m_aInfo[m_nTypeBlend].aKeyInfo[nNextKeyBlend].aKey[nCntModel];
+			pKeyNextBlend = &m_aInfo[m_nTypeBlend].aKeyInfo[nNextKeyBlend].aKey[nCntPart];
 
 			// キー情報から位置・向きを算出
 			// 位置X
@@ -378,8 +374,8 @@ void CMotion::Update(void)
 		}
 
 		// パーツの位置/向きを設定
-		m_ppModel[nCntModel]->SetPosition(posDest + m_ppModel[nCntModel]->GetPosOff());
-		m_ppModel[nCntModel]->SetRotation(rotDest + m_ppModel[nCntModel]->GetRotOff());
+		m_ppPart[nCntPart]->SetPosition(posDest + m_ppPart[nCntPart]->GetPosOff());
+		m_ppPart[nCntPart]->SetRotation(rotDest + m_ppPart[nCntPart]->GetRotOff());
 	}
 
 	if (m_bBlend == true)

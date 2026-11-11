@@ -26,6 +26,7 @@
 #include "number.h"
 #include "player.h"
 #include "wind.h"
+#include "bird.h"
 #include "meshwallM.h"
 #include "wallMM.h"
 #include "tcp_client.h"
@@ -295,6 +296,9 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 			return E_FAIL;
 		}
 	}
+
+	// ’¹‚Ì¶¬
+	CBird::Create(DEFAULT_VECTOR3, DEFAULT_VECTOR3);
 
 	// FPSƒJƒEƒ“ƒ^‚ğ‰Šú‰»
 	m_nCountFPS = 0;

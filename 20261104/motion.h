@@ -13,7 +13,7 @@
 //************************************************************************
 // 前方宣言
 //************************************************************************
-class CModel;
+class CPart;
 
 //************************************************************************
 // マクロ定義
@@ -62,7 +62,7 @@ public:
 	void Uninit(void);
 
 	void SetInfo(const INFO info);
-	void SetModel(CModel** ppModel, const int nNumModel);
+	void SetPart(CPart** ppPart, const int nNumPart);
 
 	void Set(const int nType, bool bBlend, int nFrameBlend);
 	void Update(void);
@@ -73,8 +73,8 @@ public:
 private:
 	INFO m_aInfo[MAX_MOTION];		// モーション情報
 	int m_nNumAll;					// モーションの総数
-	CModel** m_ppModel;				// モデルへのポインタ
-	int m_nNumModel;				// モデルの総数
+	CPart** m_ppPart;				// パーツへのポインタ
+	int m_nNumPart;					// パーツの総数
 
 	int m_nType;					// 現在のモーションの種類
 	bool m_bLoop;					// 現在のループするかどうか

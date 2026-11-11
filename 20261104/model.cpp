@@ -75,13 +75,6 @@ CModel::CModel()
 	m_dwNumMat = 0;
 	m_VtxMax = DEFAULT_VECTOR3;
 	m_VtxMin = DEFAULT_VECTOR3;
-	m_pos = DEFAULT_VECTOR3;
-	m_rot = DEFAULT_VECTOR3;
-	m_posOff = DEFAULT_VECTOR3;
-	m_rotOff = DEFAULT_VECTOR3;
-	m_posOffC = DEFAULT_VECTOR3;
-	m_rotOffC = DEFAULT_VECTOR3;
-	m_scale = DEFAULT_VECTOR3;
 	m_col = COLOR_WHITE;
 	m_bDisp = true;
 	m_pParent = NULL;
@@ -108,14 +101,8 @@ HRESULT CModel::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot)
 	DWORD dwSizeFVF;		// 頂点フォーマットのサイズ
 	BYTE* pVtxBuff;			// 頂点バッファへのポインタ
 
-	// モデルの情報の初期化
-	m_pos = pos;
-	m_rot = rot;
-	m_posOff = pos;
-	m_rotOff = rot;
-	m_posOffC = pos;
-	m_rotOffC = rot;
-	m_scale = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
+	// 初期化処理
+	CPart::Init(pos, rot);
 
 	// 最大値最小値の初期化
 	m_VtxMax = D3DXVECTOR3(-10000.0f, -10000.0f, -10000.0f);
@@ -226,6 +213,9 @@ void CModel::Uninit(void)
 	{
 		m_apTexture[nCntModel] = -1;
 	}
+
+	// 終了処理
+	CPart::Uninit();
 }
 
 //========================================================================
@@ -249,25 +239,16 @@ void CModel::Draw(void)
 	CRenderer* pRenderer = CManager::GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	CTexture* pTexture = CManager::GetTexture();			// テクスチャへのポインタ
-	D3DXMATRIX mtxRot, mtxTrans, mtxScale;		// 計算用マトリックス
-	D3DXMATRIX mtxParent;						// 親のマトリックス
-	D3DMATERIAL9 matDef;						// 現在のマテリアル保存用
-	D3DXMATERIAL* pMat;							// マテリアルデータへのポインタ
+	D3DXMATRIX mtxRot, mtxTrans, mtxScale, mtxWorld;		// 計算用マトリックス
+	D3DXMATRIX mtxParent;									// 親のマトリックス
+	D3DMATERIAL9 matDef;									// 現在のマテリアル保存用
+	D3DXMATERIAL* pMat;										// マテリアルデータへのポインタ
 
-	// ワールドマトリックスの初期化
-	D3DXMatrixIdentity(&m_mtxWorld);
+	// 描画処理
+	CPart::Draw();
 
-	// スケールを反映
-	D3DXMatrixScaling(&mtxScale, m_scale.x, m_scale.y, m_scale.z);
-	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxScale);
-
-	// 向きを反映
-	D3DXMatrixRotationYawPitchRoll(&mtxRot, m_rot.y, m_rot.x, m_rot.z);
-	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxRot);
-
-	// 位置を反映
-	D3DXMatrixTranslation(&mtxTrans, m_pos.x, m_pos.y, m_pos.z);
-	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxTrans);
+	// マトリックスを取得
+	mtxWorld = GetMtxWorld();
 
 	// パーツの「親のマトリックス」を設定
 	if (m_pParent != NULL)
@@ -282,10 +263,13 @@ void CModel::Draw(void)
 	}
 
 	// 算出した「パーツのワールドマトリックス」と「親のマトリックス」をかけ合わせる
-	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxParent);
+	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxParent);
+
+	// ワールドマトリックスを保存
+	SetMtxWorld(mtxWorld);
 
 	// ワールドマトリックスの設定
-	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
+	pDevice->SetTransform(D3DTS_WORLD, &mtxWorld);
 
 	// 現在のマテリアルを取得
 	pDevice->GetMaterial(&matDef);
@@ -316,69 +300,6 @@ void CModel::Draw(void)
 
 	// 保存していたマテリアルを戻す
 	pDevice->SetMaterial(&matDef);
-}
-
-//========================================================================
-// 位置設定
-//========================================================================
-void CModel::SetPosition(const D3DXVECTOR3 pos)
-{
-	// 位置を変更
-	m_pos = pos;
-}
-
-//========================================================================
-// 位置設定(オフセット)
-//========================================================================
-void CModel::SetPosOff(const D3DXVECTOR3 pos)
-{
-	// 位置を変更
-	m_posOff = pos;
-}
-
-//========================================================================
-// スケール設定
-//========================================================================
-void CModel::SetScale(const D3DXVECTOR3 scale)
-{
-	// スケールを変更
-	m_scale = scale;
-}
-
-//========================================================================
-// 角度設定
-//========================================================================
-void CModel::SetRotation(const D3DXVECTOR3 rot)
-{
-	// 向きを変更
-	m_rot = rot;
-
-	// X向きを調整
-	CObject::CorrectAngle(&m_rot.x, m_rot.x);
-
-	// Y向きを調整
-	CObject::CorrectAngle(&m_rot.y, m_rot.y);
-
-	// Z向きを調整
-	CObject::CorrectAngle(&m_rot.z, m_rot.z);
-}
-
-//========================================================================
-// 角度設定(オフセット)
-//========================================================================
-void CModel::SetRotOff(const D3DXVECTOR3 rot)
-{
-	// 向きを変更
-	m_rotOff = rot;
-
-	// X向きを調整
-	CObject::CorrectAngle(&m_rotOff.x, m_rotOff.x);
-
-	// Y向きを調整
-	CObject::CorrectAngle(&m_rotOff.y, m_rotOff.y);
-
-	// Z向きを調整
-	CObject::CorrectAngle(&m_rotOff.z, m_rotOff.z);
 }
 
 //========================================================================
