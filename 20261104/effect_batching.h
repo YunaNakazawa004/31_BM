@@ -66,24 +66,24 @@ private:
 	int m_nMax;									// 最大数
 	int m_nNumUse;								// 使用数
 	int m_nNumUseShadow;						// 影使用数
-	std::vector<D3DXMATRIX> m_vMtxWorld;			// ワールドマトリックス
-	std::vector<D3DXVECTOR3> m_vPos;				// 位置
-	std::vector<D3DXVECTOR3> m_vMove;				// 各方向への移動量
-	std::vector<float> m_vfSpeed;					// 移動量
-	std::vector<float> m_vfSpeedInertia;			// 移動の慣性
-	std::vector<int> m_vType;						// 種類
-	std::vector<float> m_vfGravity;					// 重力
-	std::vector<float> m_vfBounce;					// 跳ね返りs
-	std::vector<int> m_vnLife;						// 寿命
-	std::vector<float> m_vfRadius;					// 半径
-	std::vector<float> m_vfAddRadius;				// 半径の変更量
-	std::vector<float> m_vfMinusAlpha;				// 透明度の変更量
-	std::vector<D3DXCOLOR> m_vCol;					// 色
-	std::vector<bool> m_vbHoming;					// ホーミングするかどうか
-	std::vector<CObject*> m_vHomingObj;				// ホーミング対象
-	std::vector<D3DXVECTOR3> m_vHomingPos;			// ホーミング位置
-	std::vector<float> m_vfSpeedHoming;				// ホーミングの移動量
-	std::vector<bool> m_vbShadow;					// 影の有無
+	std::vector<D3DXMATRIX> m_vMtxWorld;	// ワールドマトリックス
+	std::vector<D3DXVECTOR3> m_vPos;		// 位置
+	std::vector<D3DXVECTOR3> m_vMove;		// 各方向への移動量
+	std::vector<float> m_vfSpeed;			// 移動量
+	std::vector<float> m_vfSpeedInertia;	// 移動の慣性
+	std::vector<int> m_vType;				// 種類
+	std::vector<float> m_vfGravity;			// 重力
+	std::vector<float> m_vfBounce;			// 跳ね返りs
+	std::vector<int> m_vnLife;				// 寿命
+	std::vector<float> m_vfRadius;			// 半径
+	std::vector<float> m_vfAddRadius;		// 半径の変更量
+	std::vector<float> m_vfMinusAlpha;		// 透明度の変更量
+	std::vector<D3DXCOLOR> m_vCol;			// 色
+	std::vector<bool> m_vbHoming;			// ホーミングするかどうか
+	std::vector<CObject*> m_vHomingObj;		// ホーミング対象
+	std::vector<D3DXVECTOR3> m_vHomingPos;	// ホーミング位置
+	std::vector<float> m_vfSpeedHoming;		// ホーミングの移動量
+	std::vector<bool> m_vbShadow;			// 影の有無
 };
 
 #endif

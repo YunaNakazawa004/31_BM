@@ -80,7 +80,15 @@ CBird* CBird::Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot)
 CBird::CBird(const int nPriority) :CObject(nPriority)
 {
 	// 鳥クラスの値をクリア
-	m_pMotion = NULL;
+	m_pVtxBuff = nullptr;
+	m_vpBone.clear();
+	m_pPosOff = nullptr;
+	m_pIdxRef = nullptr;
+	m_pWeightValue = nullptr;
+	m_nNumBone = 0;
+	m_nNumVtx = 0;
+	m_nNumPoly = 0;
+	m_pMotion = nullptr;
 	m_pos = DEFAULT_VECTOR3;
 	m_posOld = DEFAULT_VECTOR3;
 	m_move = DEFAULT_VECTOR3;
@@ -134,7 +142,7 @@ HRESULT CBird::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot)
 	}
 
 	// モーションに必要なボーンの設定
-	m_pMotion->SetPart((CPart**)&m_apBone[0], m_nNumBone);
+	m_pMotion->SetPart((CPart**)&m_vpBone.at(0), m_nNumBone);
 
 	// 初期モーションの設定
 	m_pMotion->Set(MOTIONTYPE_NEUTRAL, false, 0);
@@ -147,26 +155,48 @@ HRESULT CBird::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot)
 //========================================================================
 void CBird::Uninit(void)
 {
-	for (int nCntBone = 0; nCntBone < 2; nCntBone++)
+	// ボーンの破棄
+	for (int nCntBone = 0; nCntBone < m_nNumBone; nCntBone++)
 	{
-		if (m_apBone[nCntBone] != NULL)
+		if (m_vpBone.at(nCntBone) != nullptr)
 		{// NULLチェック
 			// 終了処理
-			m_apBone[nCntBone]->Uninit();
+			m_vpBone.at(nCntBone)->Uninit();
 
-			delete m_apBone[nCntBone];
-			m_apBone[nCntBone] = NULL;
+			delete[] m_vpBone.at(nCntBone);
+			m_vpBone.at(nCntBone) = nullptr;
 		}
 	}
 
+	// オフセット位置の破棄
+	if (m_pPosOff != nullptr)
+	{// NULLチェック
+		delete[] m_pPosOff;
+		m_pPosOff = nullptr;
+	}
+
+	// ボーン番号の破棄
+	if (m_pIdxRef != nullptr)
+	{// NULLチェック
+		delete[] m_pIdxRef;
+		m_pIdxRef = nullptr;
+	}
+
+	// ウェイトの破棄
+	if (m_pWeightValue != nullptr)
+	{// NULLチェック
+		delete[] m_pWeightValue;
+		m_pWeightValue = nullptr;
+	}
+
 	// モーションの破棄
-	if (m_pMotion != NULL)
+	if (m_pMotion != nullptr)
 	{// NULLチェック
 		// 終了処理
 		m_pMotion->Uninit();
 
 		delete m_pMotion;
-		m_pMotion = NULL;
+		m_pMotion = nullptr;
 	}
 
 	// 頂点バッファの破棄
@@ -186,8 +216,8 @@ void CBird::Uninit(void)
 void CBird::Update(void)
 {
 	CInputKeyboard* pInputKeyboard = CManager::GetInputKeyboard();		// キーボード入力の取得
-	D3DXVECTOR3 rot0 = m_apBone[0]->GetRotation();
-	D3DXVECTOR3 rot1 = m_apBone[1]->GetRotation();
+	D3DXVECTOR3 rot0 = m_vpBone.at(0)->GetRotation();
+	D3DXVECTOR3 rot1 = m_vpBone.at(1)->GetRotation();
 
 	if (pInputKeyboard->GetPress(DIK_T))
 	{
@@ -207,8 +237,8 @@ void CBird::Update(void)
 		rot1.x -= 0.03f;
 	}
 
-	m_apBone[0]->SetRotation(rot0);
-	m_apBone[1]->SetRotation(rot1);
+	m_vpBone.at(0)->SetRotation(rot0);
+	m_vpBone.at(1)->SetRotation(rot1);
 
 	// モーションの更新処理
 	m_pMotion->Update();
@@ -246,50 +276,51 @@ void CBird::Draw(void)
 	D3DXMatrixTranslation(&mtxTrans, m_pos.x, m_pos.y, m_pos.z);
 	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxTrans);
 
-	D3DXVECTOR3 pos[2][VTX_NUM] = {};
-	D3DXVECTOR3 posCorrect[VTX_NUM] = {};
+	D3DXVECTOR3 posCorrect[VTX_NUM];
+	memset(&posCorrect[0], 0, sizeof posCorrect);
 
-	for (int nCnt = 0; nCnt < 2; nCnt++)
+	for (int nCntBone = 0; nCntBone < 2; nCntBone++)
 	{
 		// ボーンの描画（マトリックスの計算）
-		m_apBone[nCnt]->Draw();
+		m_vpBone.at(nCntBone)->Draw();
 
 		// ボーンのマトリックスを取得
-		mtxBone = m_apBone[nCnt]->GetMtxWorld();
+		mtxBone = m_vpBone.at(nCntBone)->GetMtxWorld();
 
 		// 全頂点データの算出
-		for (int nCntVtx = 0; nCntVtx < VTX_NUM; nCntVtx++)
+		for (int nCntVtx = 0; nCntVtx < m_nNumVtx; nCntVtx++)
 		{
-			D3DXVec3TransformCoord(&pos[nCnt][nCntVtx], &m_aInfo[nCnt][nCntVtx], &mtxBone);
+			if (m_pIdxRef[0 * m_nNumVtx + nCntVtx] != nCntBone && m_pIdxRef[1 * m_nNumVtx + nCntVtx] != nCntBone)
+			{// 全く影響しない頂点は飛ばす
+				continue;
+			}
+
+			// 計算した位置
+			D3DXVECTOR3 pos = DEFAULT_VECTOR3;
+
+			// 頂点座標に変換
+			D3DXVec3TransformCoord(&pos, &m_pPosOff[nCntBone * m_nNumVtx + nCntVtx], &mtxBone);
+
+			// 頂点データの合計値を算出
+			if (m_pIdxRef[0 * m_nNumVtx + nCntVtx] == nCntBone)
+			{// 1つ目のボーン番号
+				posCorrect[nCntVtx] += pos * m_pWeightValue[0 * m_nNumVtx + nCntVtx];
+			}
+			else if (m_pIdxRef[1 * m_nNumVtx + nCntVtx] == nCntBone)
+			{// 2つ目のボーン番号
+				posCorrect[nCntVtx] += pos * m_pWeightValue[1 * m_nNumVtx + nCntVtx];
+			}
 		}
 	}
-
-	// 頂点データの合計値を算出
-	posCorrect[0] = (pos[0][0] * 0.0f) + (pos[1][0] * 1.0f);
-	posCorrect[1] = (pos[0][1] * 0.0f) + (pos[1][1] * 1.0f);
-	posCorrect[2] = (pos[0][2] * 0.25f) + (pos[1][2] * 0.75f);
-	posCorrect[3] = (pos[0][3] * 0.25f) + (pos[1][3] * 0.75f);
-	posCorrect[4] = (pos[0][4] * 0.5f) + (pos[1][4] * 0.5f);
-	posCorrect[5] = (pos[0][5] * 0.5f) + (pos[1][5] * 0.5f);
-	posCorrect[6] = (pos[0][6] * 0.75f) + (pos[1][6] * 0.25f);
-	posCorrect[7] = (pos[0][7] * 0.75f) + (pos[1][7] * 0.25f);
-	posCorrect[8] = (pos[0][8] * 1.0f) + (pos[1][8] * 0.0f);
-	posCorrect[9] = (pos[0][9] * 1.0f) + (pos[1][9] * 0.0f);
 
 	// 頂点バッファをロックし、頂点情報へのポインタを取得
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
 
-	// 頂点情報の設定
-	pVtx[0].pos = posCorrect[0];
-	pVtx[1].pos = posCorrect[1];
-	pVtx[2].pos = posCorrect[2];
-	pVtx[3].pos = posCorrect[3];
-	pVtx[4].pos = posCorrect[4];
-	pVtx[5].pos = posCorrect[5];
-	pVtx[6].pos = posCorrect[6];
-	pVtx[7].pos = posCorrect[7];
-	pVtx[8].pos = posCorrect[8];
-	pVtx[9].pos = posCorrect[9];
+	// 頂点座標を設定
+	for (int nCntVtx = 0; nCntVtx < m_nNumVtx; nCntVtx++)
+	{
+		pVtx[nCntVtx].pos = posCorrect[nCntVtx];
+	}
 
 	// 頂点バッファをアンロックする
 	m_pVtxBuff->Unlock();
@@ -309,7 +340,7 @@ void CBird::Draw(void)
 	// ポリゴンの描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
 		0,		// 描画する最初の頂点インデックス
-		8);		// 描画するプリミティブ数
+		m_nNumPoly);		// 描画するプリミティブ数
 }
 
 //========================================================================
@@ -384,6 +415,7 @@ HRESULT CBird::SetBone(const char* pFilename)
 
 	// 頂点設定用の変数
 	int nNumVtx = 0;						// 頂点の数
+	int nNumPoly = 0;						// プリミティブ数
 	D3DXVECTOR3 posVtx = DEFAULT_VECTOR3;	// 位置
 	int nBoneRef[2] = {};					// 影響を受けるボーン番号
 	float fWeightValue[2] = {};				// ボーンごとのウェイト
@@ -538,21 +570,19 @@ HRESULT CBird::SetBone(const char* pFilename)
 						file >> line;				// 次の文字列
 					}
 
-					if (m_apBone[nCntBone] == nullptr)
-					{// NULLチェック
-						m_apBone[nCntBone] = CBone::Create(pos, rot);
-					}
+					// ボーンを生成
+					m_vpBone.push_back(CBone::Create(pos, rot));
 
 					// 親の設定
-					if (m_apBone[nCntBone] != nullptr)
+					if (m_vpBone.at(nCntBone) != nullptr)
 					{// NULLチェック
 						if (nIdxParent < 0 || nIdxParent >= nNumBone)
 						{// 親がいない場合
-							m_apBone[nCntBone]->SetParent(nullptr);
+							m_vpBone.at(nCntBone)->SetParent(nullptr);
 						}
 						else
 						{// 親がいる場合
-							m_apBone[nCntBone]->SetParent(m_apBone[nIdxParent]);
+							m_vpBone.at(nCntBone)->SetParent(m_vpBone.at(nCntBone));
 						}
 					}
 				}
@@ -568,11 +598,18 @@ HRESULT CBird::SetBone(const char* pFilename)
 				{// 頂点数
 					file >> line;				// =
 					file >> nNumVtx;			// 数字
-	
+
+					m_nNumVtx = nNumVtx;
+
+					// 頂点に関連する情報を生成
+					m_pPosOff = new D3DXVECTOR3[m_nNumBone * m_nNumVtx];
+					m_pIdxRef = new int[m_nNumBone * m_nNumVtx];
+					m_pWeightValue = new float[m_nNumBone * m_nNumVtx];
+
 					if (m_pVtxBuff == nullptr)
 					{// NULLチェック
 						// 頂点バッファを生成
-						if (FAILED(pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * VTX_NUM,
+						if (FAILED(pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * nNumVtx,
 							D3DUSAGE_WRITEONLY,
 							FVF_VERTEX_3D,
 							D3DPOOL_MANAGED,
@@ -584,6 +621,16 @@ HRESULT CBird::SetBone(const char* pFilename)
 							continue;
 						}
 					}
+
+					file >> line;				// 次の情報
+				}
+
+				if (line.find("NUM_PRIMITIVE") != std::string::npos)
+				{// プリミティブ数
+					file >> line;				// =
+					file >> nNumPoly;			// 数字
+
+					m_nNumPoly = nNumPoly;
 
 					file >> line;				// 次の情報
 				}
@@ -687,10 +734,12 @@ HRESULT CBird::SetBone(const char* pFilename)
 					pVtx[nCntVtx].col = COLOR_WHITE;
 					pVtx[nCntVtx].tex = texVtx;
 
-					// オフセット位置を算出
+					// 各頂点の追加情報を設定
 					for (int nCntBone = 0; nCntBone < nNumBone; nCntBone++)
 					{
-						m_aInfo[nCntBone][nCntVtx] = pos - m_apBone[nCntBone]->GetPosition();
+						m_pPosOff[nCntBone * m_nNumVtx + nCntVtx] = pos - m_vpBone.at(nCntBone)->GetPosition();
+						m_pIdxRef[nCntBone * m_nNumVtx + nCntVtx] = nBoneRef[nCntBone];
+						m_pWeightValue[nCntBone * m_nNumVtx + nCntVtx] = fWeightValue[nCntBone];
 					}
 				}
 

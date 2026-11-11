@@ -9,6 +9,7 @@
 
 #include "main.h"
 #include "object.h"
+#include <vector>
 
 //************************************************************************
 // マクロ定義
@@ -83,9 +84,13 @@ private:
 	HRESULT SetBone(const char* pFilename);
 
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;			// 頂点バッファへのポインタ
-	CBone* m_apBone[2];							// ボーンのインスタンス
+	std::vector<CBone*> m_vpBone;				// ボーンのインスタンス
 	int m_nNumBone;								// ボーンの総数
-	D3DXVECTOR3 m_aInfo[2][10];					// 頂点オフセットのデータ
+	D3DXVECTOR3* m_pPosOff;						// 頂点オフセットのデータ
+	int* m_pIdxRef;								// 影響を受けるボーン番号
+	float* m_pWeightValue;						// 各ボーンから受けるウェイト
+	int m_nNumVtx;								// 頂点の総数
+	int m_nNumPoly;								// プリミティブ数
 	CMotion* m_pMotion;							// モーションへのポインタ
 
 	D3DXMATRIX m_mtxWorld;			// ワールドマトリックス
