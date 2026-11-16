@@ -57,7 +57,7 @@ public:
 		TYPE_EFFECT3D,			// エフェクト3D
 		TYPE_PARTICLE2D,		// パーティクル2D
 		TYPE_PARTICLE3D,		// パーティクル3D
-		TYPE_PLAYER,			// プレイヤー
+		TYPE_BALL,				// ボール
 		TYPE_WIND,				// 風
 		TYPE_FIELD,				// 地面
 		TYPE_WALL,				// 壁

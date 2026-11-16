@@ -180,7 +180,7 @@
     <ClCompile Include="particle3D.cpp" />
     <ClCompile Include="particleX.cpp" />
     <ClCompile Include="particle_batching.cpp" />
-    <ClCompile Include="player.cpp" />
+    <ClCompile Include="ball.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="sand.cpp" />
     <ClCompile Include="sound.cpp" />
@@ -225,7 +225,7 @@
     <ClInclude Include="particle3D.h" />
     <ClInclude Include="particleX.h" />
     <ClInclude Include="particle_batching.h" />
-    <ClInclude Include="player.h" />
+    <ClInclude Include="ball.h" />
     <ClInclude Include="protocol_ranking.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="sand.h" />

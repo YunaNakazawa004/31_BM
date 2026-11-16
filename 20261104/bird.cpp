@@ -63,7 +63,7 @@ CBird* CBird::Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot)
 		}
 
 		// Ží—Þ‚ðÝ’è
-		pBird->SetType(TYPE_PLAYER);
+		pBird->SetType(TYPE_WIND);
 
 		return pBird;
 	}

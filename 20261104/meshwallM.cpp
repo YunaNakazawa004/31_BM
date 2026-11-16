@@ -13,7 +13,7 @@
 #include "debugproc.h"
 #include "line.h"
 
-#include "player.h"
+#include "ball.h"
 
 //*****************************************************************************
 // É}ÉNÉçíËã`

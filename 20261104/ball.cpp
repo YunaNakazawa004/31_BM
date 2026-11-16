@@ -1,10 +1,10 @@
 //========================================================================
 // 
-// プレイヤー [	player.cpp ]
+// 球 [	ball.cpp ]
 // Author : Nakazawa Yuna
 // 
 //========================================================================
-#include "player.h"
+#include "ball.h"
 
 #include "renderer.h"
 #include "MTrenderer.h"
@@ -51,12 +51,12 @@
 //************************************************************************
 // 静的メンバ変数宣言
 //************************************************************************
-int CPlayer::m_nIdxModel = {};			// モデルのインデックス
+int CBall::m_nIdxModel = {};			// モデルのインデックス
 
 //========================================================================
 // モデルのロード処理
 //========================================================================
-HRESULT CPlayer::Load(const char* pFilename)
+HRESULT CBall::Load(const char* pFilename)
 {
 	// ローカル変数宣言
 	CXModel* pXModel = CManager::GetXModel();			// モデル管理へのポインタ
@@ -77,16 +77,16 @@ HRESULT CPlayer::Load(const char* pFilename)
 //========================================================================
 // モデルのアンロード処理
 //========================================================================
-void CPlayer::Unload(void)
+void CBall::Unload(void)
 {
 	// モデルのインデックスを削除
 	memset(&m_nIdxModel, -1, sizeof m_nIdxModel);
 }
 
 //========================================================================
-// プレイヤークラスの生成処理
+// 球クラスの生成処理
 //========================================================================
-CPlayer* CPlayer::Create(const D3DXVECTOR3 pos, const float fRadius, const float fJump,
+CBall* CBall::Create(const D3DXVECTOR3 pos, const float fRadius, const float fJump,
 	const float fSpeed, const float fSpeedInertia)
 {
 #ifndef LIST
@@ -98,44 +98,44 @@ CPlayer* CPlayer::Create(const D3DXVECTOR3 pos, const float fRadius, const float
 	}
 #endif
 
-	CPlayer* pPlayer = nullptr;
+	CBall* pBall = nullptr;
 
-	if (pPlayer == nullptr)
+	if (pBall == nullptr)
 	{// NULLチェック
-		// プレイヤーの生成
-		pPlayer = new CPlayer;
+		// 球の生成
+		pBall = new CBall;
 	}
 
-	if (pPlayer != nullptr)
+	if (pBall != nullptr)
 	{// NULLチェック
 		// モデルファイル設定
-		pPlayer->BindModel(m_nIdxModel);
+		pBall->BindModel(m_nIdxModel);
 
 		// 初期化処理
-		if (FAILED(pPlayer->Init(pos, fRadius, fJump, fSpeed, fSpeedInertia)))
+		if (FAILED(pBall->Init(pos, fRadius, fJump, fSpeed, fSpeedInertia)))
 		{// もし失敗した場合
-			OutputDebugStringA("! ! ! プレイヤーの初期化に失敗しました ! ! !\n");
+			OutputDebugStringA("! ! ! 球の初期化に失敗しました ! ! !\n");
 
 			return nullptr;
 		}
 
 		// 種類を設定
-		pPlayer->SetType(TYPE_PLAYER);
+		pBall->SetType(TYPE_BALL);
 
-		return pPlayer;
+		return pBall;
 	}
 
-	OutputDebugStringA("! ! ! プレイヤーの生成に失敗しました ! ! !\n");
+	OutputDebugStringA("! ! ! 球の生成に失敗しました ! ! !\n");
 
 	return nullptr;
 }
 
 //========================================================================
-// プレイヤークラスのコンストラクタ
+// 球クラスのコンストラクタ
 //========================================================================
-CPlayer::CPlayer(const int nPriority) :CObjectX(nPriority)
+CBall::CBall(const int nPriority) :CObjectX(nPriority)
 {
-	// プレイヤークラスの値をクリア
+	// 球クラスの値をクリア
 	m_posOld = DEFAULT_VECTOR3;
 	m_move = DEFAULT_VECTOR3;
 	m_rotDest = DEFAULT_VECTOR3;
@@ -160,22 +160,22 @@ CPlayer::CPlayer(const int nPriority) :CObjectX(nPriority)
 }
 
 //========================================================================
-// プレイヤークラスのデストラクタ
+// 球クラスのデストラクタ
 //========================================================================
-CPlayer::~CPlayer()
+CBall::~CBall()
 {
 }
 
 //========================================================================
-// プレイヤークラスの初期化処理
+// 球クラスの初期化処理
 //========================================================================
-HRESULT CPlayer::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJump,
+HRESULT CBall::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJump,
 	const float fSpeed, const float fSpeedInertia)
 {
 	// 初期化処理
 	CObjectX::Init(pos);
 
-	// プレイヤーの初期化
+	// 球の初期化
 	m_posOld = DEFAULT_VECTOR3;
 	m_move = DEFAULT_VECTOR3;
 	m_rotDest = D3DXVECTOR3(0.0f, D3DX_PI, 0.0f);
@@ -204,7 +204,7 @@ HRESULT CPlayer::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJ
 		m_pWindRight = CWind::Create(D3DXVECTOR3(pos.x + 200.0f, pos.y, pos.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 3.0f, 0.4f, true);
 	}
 
-	D3DXVECTOR3 scale = CPlayer::GetScale();
+	D3DXVECTOR3 scale = CBall::GetScale();
 	scale.x = m_fRadius / DEFAULT_SIZE;
 	scale.y = m_fRadius / DEFAULT_SIZE;
 	scale.z = m_fRadius / DEFAULT_SIZE;
@@ -218,25 +218,25 @@ HRESULT CPlayer::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJ
 }
 
 //========================================================================
-// プレイヤークラスの終了処理
+// 球クラスの終了処理
 //========================================================================
-void CPlayer::Uninit(void)
+void CBall::Uninit(void)
 {
 	// 終了処理
 	CObjectX::Uninit();
 }
 
 //========================================================================
-// プレイヤークラスの更新処理
+// 球クラスの更新処理
 //========================================================================
-void CPlayer::Update(void)
+void CBall::Update(void)
 {
 	// ローカル変数
 	CInputKeyboard* pInputKeyboard = CManager::GetInputKeyboard();		// キーボード入力の取得
 	CInputJoypad* pInputJoypad = CManager::GetInputJoypad();			// ジョイパッド入力の取得
 	CDebugProc* pDebug = CManager::GetDebugProc();
-	D3DXVECTOR3 pos = CPlayer::GetPosition();
-	D3DXVECTOR3 rot = CPlayer::GetRotation();
+	D3DXVECTOR3 pos = CBall::GetPosition();
+	D3DXVECTOR3 rot = CBall::GetRotation();
 	float frotDiff = 0.0f;
 
 	m_posOld = pos;
@@ -461,9 +461,9 @@ void CPlayer::Update(void)
 }
 
 //========================================================================
-// プレイヤークラスの描画処理
+// 球クラスの描画処理
 //========================================================================
-void CPlayer::Draw(void)
+void CBall::Draw(void)
 {
 	CRenderer* pRenderer = CManager::GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
@@ -488,10 +488,10 @@ void CPlayer::Draw(void)
 //========================================================================
 // マトリックスを計算
 //========================================================================
-D3DXMATRIX CPlayer::MatrixCalc(void)
+D3DXMATRIX CBall::MatrixCalc(void)
 {
 	D3DXMATRIX mtxWorld, mtxRot, mtxTrans, mtxScale;		// 計算用マトリックス
-	D3DXVECTOR3 pos, scale;			// プレイヤーの情報
+	D3DXVECTOR3 pos, scale;			// 球の情報
 	scale = GetScale();				// スケールを取得
 	pos = GetPosition();			// 位置を取得
 
@@ -522,7 +522,7 @@ D3DXMATRIX CPlayer::MatrixCalc(void)
 //========================================================================
 // 移動制御
 //========================================================================
-bool CPlayer::Movement(void)
+bool CBall::Movement(void)
 {
 	// ローカル変数
 	CCamera* pCamera = CManager::GetCamera();							// カメラの取得
@@ -625,12 +625,12 @@ bool CPlayer::Movement(void)
 //========================================================================
 // 値を調節する処理
 //========================================================================
-void CPlayer::SubControll(void)
+void CBall::SubControll(void)
 {
 	// ローカル変数
 	CInputKeyboard* pInputKeyboard = CManager::GetInputKeyboard();		// キーボード入力の取得
 	CInputJoypad* pInputJoypad = CManager::GetInputJoypad();			// ジョイパッド入力の取得
-	D3DXVECTOR3 scale = CPlayer::GetScale();
+	D3DXVECTOR3 scale = CBall::GetScale();
 
 	// パーティクルX
 	if (pInputKeyboard->GetTrigger(DIK_NUMPAD0) == true)

@@ -1,11 +1,11 @@
 //========================================================================
 // 
-// プレイヤーヘッダー [	player.h ]
+// 球ヘッダー [	ball.h ]
 // Author : Nakazawa Yuna
 // 
 //========================================================================
-#ifndef _PLAYER_H_		// このマクロ定義がされていなかったら
-#define _PLAYER_H_		// 2重インクルード防止のマクロを定義する
+#ifndef _BALL_H_		// このマクロ定義がされていなかったら
+#define _BALL_H_		// 2重インクルード防止のマクロを定義する
 
 #include "main.h"
 #include "objectX.h"
@@ -22,12 +22,12 @@ class CWind;
 #define MAX_MODEL_TEXTURE		(16)		// モデルの最大テクスチャ
 
 //************************************************************************
-// プレイヤークラス
+// 球クラス
 //************************************************************************
-class CPlayer : public CObjectX
+class CBall : public CObjectX
 {
 public:
-	// プレイヤーの状態
+	// 球の状態
 	typedef enum
 	{
 		STATE_NONE = 0,		// 状態なし
@@ -35,12 +35,12 @@ public:
 		STATE_MAX
 	}STATE;
 
-	CPlayer(const int nPriority = PRIORITY_4);
-	~CPlayer();
+	CBall(const int nPriority = PRIORITY_4);
+	~CBall();
 
 	static HRESULT Load(const char* pFilename);
 	static void Unload(void);
-	static CPlayer* Create(const D3DXVECTOR3 pos, const float fRadius, const float fJump,
+	static CBall* Create(const D3DXVECTOR3 pos, const float fRadius, const float fJump,
 		const float fSpeed, const float fSpeedInertia);
 	HRESULT Init(const D3DXVECTOR3 pos, const float fRadius, const float fJump, 
 		const float fSpeed, const float fSpeedInertia);

@@ -7,7 +7,7 @@
 #include "file.h"
 
 #include "manager.h"
-#include "player.h"
+#include "ball.h"
 #include "wind.h"
 #include "field.h"
 #include "wallMM.h"
@@ -113,7 +113,7 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 				}
 			}
 
-			if (line.find("PLAYERSET") != std::string::npos && type == CObject::TYPE_PLAYER)
+			if (line.find("PLAYERSET") != std::string::npos && type == CObject::TYPE_BALL)
 			{// プレイヤーを設定
 				std::string pModelFile = "";			// モデルファイル名
 				D3DXVECTOR3 pos = DEFAULT_VECTOR3;		// 初期位置
@@ -174,8 +174,8 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 
 				if (line.find("END_PLAYERSET") != std::string::npos)
 				{// プレイヤー設定を終わる
-					CPlayer::Load(pModelFile.c_str());
-					pObject = CPlayer::Create(pos, fRadius, fJump, fSpeed, fInertia);
+					CBall::Load(pModelFile.c_str());
+					pObject = CBall::Create(pos, fRadius, fJump, fSpeed, fInertia);
 
 					continue;
 				}

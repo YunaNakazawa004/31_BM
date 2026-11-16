@@ -24,7 +24,7 @@
 #include "objectX.h"
 #include "objectBillboard.h"
 #include "number.h"
-#include "player.h"
+#include "ball.h"
 #include "wind.h"
 #include "bird.h"
 #include "meshwallM.h"
@@ -52,7 +52,7 @@ CLight* CManager::m_pLight = nullptr;					// ライトのインスタンス
 CTexture* CManager::m_pTexture = nullptr;				// テクスチャのインスタンス
 CXModel* CManager::m_pXModel = nullptr;					// モデル管理のインスタンス
 CEffectBatching* CManager::m_pEffectBatching = nullptr;	// バッチ描画エフェクトのインスタンス
-CPlayer* CManager::m_pPlayer = nullptr;					// プレイヤーのインスタンス
+CBall* CManager::m_pBall = nullptr;						// ボールのインスタンス
 CWind* CManager::m_pWind = nullptr;						// 風のインスタンス
 CTcpClient* CManager::m_pTcpClient = nullptr;			// TCP送受信のインスタンス
 int CManager::m_nCountFPS = 0;							// FPSカウンター
@@ -79,7 +79,7 @@ CManager::CManager()
 	m_pTexture = nullptr;
 	m_pXModel = nullptr;
 	m_pEffectBatching = nullptr;
-	m_pPlayer = nullptr;
+	m_pBall = nullptr;
 	m_pWind = nullptr;
 	m_pTcpClient = nullptr;
 	m_nCountFPS = 0;
@@ -284,14 +284,14 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 		}
 	}
 
-	// プレイヤーの生成
-	if (m_pPlayer == nullptr)
+	// ボールの生成
+	if (m_pBall == nullptr)
 	{// NULLチェック
-		m_pPlayer = dynamic_cast<CPlayer*>(CFile::SetObject("data\\object.txt", CObject::TYPE_PLAYER));
+		m_pBall = dynamic_cast<CBall*>(CFile::SetObject("data\\object.txt", CObject::TYPE_BALL));
 
-		if (m_pPlayer == nullptr)
+		if (m_pBall == nullptr)
 		{// NULLチェック
-			OutputDebugStringA("! ! ! プレイヤーの生成に失敗しました ! ! !\n");
+			OutputDebugStringA("! ! ! ボールの生成に失敗しました ! ! !\n");
 
 			return E_FAIL;
 		}
@@ -321,7 +321,7 @@ void CManager::Uninit(void)
 	// オブジェクトのモデルを破棄
 	CEffectX::Unload();
 	CWind::Unload();
-	CPlayer::Unload();
+	CBall::Unload();
 
 	// オブジェクトのテクスチャを破棄
 	CWallMM::Unload();
@@ -336,10 +336,10 @@ void CManager::Uninit(void)
 		m_pWind = nullptr;
 	}
 	
-	// プレイヤーの破棄
-	if (m_pPlayer != nullptr)
+	// ボールの破棄
+	if (m_pBall != nullptr)
 	{// NULLチェック
-		m_pPlayer = nullptr;
+		m_pBall = nullptr;
 	}
 
 	// バッチ描画エフェクトの破棄
@@ -598,7 +598,7 @@ void CManager::Reset(void)
 	CObject::ReleaseAll();
 	m_pEffectBatching->Reset();
 
-	m_pPlayer = nullptr;
+	m_pBall = nullptr;
 	m_pWind = nullptr;
 
 	// ポーズを解除
@@ -618,14 +618,14 @@ void CManager::Reset(void)
 		}
 	}
 
-	// プレイヤーの生成
-	if (m_pPlayer == nullptr)
+	// ボールの生成
+	if (m_pBall == nullptr)
 	{// NULLチェック
-		m_pPlayer = dynamic_cast<CPlayer*>(CFile::SetObject("data\\object.txt", CObject::TYPE_PLAYER));
+		m_pBall = dynamic_cast<CBall*>(CFile::SetObject("data\\object.txt", CObject::TYPE_BALL));
 
-		if (m_pPlayer == nullptr)
+		if (m_pBall == nullptr)
 		{// NULLチェック
-			OutputDebugStringA("! ! ! プレイヤーの生成に失敗しました ! ! !\n");
+			OutputDebugStringA("! ! ! ボールの生成に失敗しました ! ! !\n");
 		}
 	}
 }
