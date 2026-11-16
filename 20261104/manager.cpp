@@ -299,6 +299,9 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 	// ’¹‚Ì¶¬
 	CBird::Create(DEFAULT_VECTOR3, DEFAULT_VECTOR3);
+	
+	// ’¹‚Ì¶¬
+	CBird::Create(D3DXVECTOR3(100.0f,100.0f,100.0f), DEFAULT_VECTOR3);
 
 	// FPSƒJƒEƒ“ƒ^‚ğ‰Šú‰»
 	m_nCountFPS = 0;

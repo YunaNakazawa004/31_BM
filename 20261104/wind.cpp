@@ -17,6 +17,7 @@
 #include "camera.h"
 #include "line.h"
 #include "sand.h"
+#include "bird.h"
 #include "meshorbit.h"
 
 //************************************************************************
@@ -63,7 +64,7 @@ void CWind::Unload(void)
 //========================================================================
 // 風クラスの生成処理
 //========================================================================
-CWind* CWind::Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect)
+CWind* CWind::Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect, const bool bBird)
 {
 #ifndef LIST
 	if (CObject::GetNumAll() >= MAX_OBJECT)
@@ -88,7 +89,7 @@ CWind* CWind::Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float f
 		pWind->BindModel(m_nIdxModel);
 
 		// 初期化処理
-		if (FAILED(pWind->Init(pos, vec, fStrength, fAffect)))
+		if (FAILED(pWind->Init(pos, vec, fStrength, fAffect, bBird)))
 		{// もし失敗した場合
 			OutputDebugStringA("! ! ! 風の初期化に失敗しました ! ! !\n");
 
@@ -118,6 +119,7 @@ CWind::CWind(const int nPriority) :CObjectX(nPriority)
 	m_fStrength = 0.0f;
 	m_fAngle = 0.0f;
 	m_fAffect = 0.0f;
+	m_pBird = nullptr;
 	m_pMeshOrbit = nullptr;
 	m_fFlow = 0.0f;
 	m_randPos = DEFAULT_VECTOR3;
@@ -134,7 +136,7 @@ CWind::~CWind()
 //========================================================================
 // 風クラスの初期化処理
 //========================================================================
-HRESULT CWind::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect)
+HRESULT CWind::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect, const bool bBird)
 {
 	// 初期化処理
 	CObjectX::Init(pos);
@@ -149,6 +151,12 @@ HRESULT CWind::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fS
 	m_fFlow = 0.0f;
 	m_randPos = DEFAULT_VECTOR3;
 	m_nCounter = 0;
+
+	// 鳥の生成
+	if (bBird == true)
+	{// 生成する場合
+		m_pBird = CBird::Create(D3DXVECTOR3(pos.x, pos.y + 100.0f, pos.z), DEFAULT_VECTOR3);
+	}
 
 	// サイズ
 	D3DXVECTOR3 scale = GetScale();
@@ -243,6 +251,13 @@ void CWind::Update(void)
 
 	// 位置を適用
 	SetPosition(pos);
+
+	if (m_pBird != nullptr)
+	{// 鳥が生成されている
+		// 鳥の位置/向きを設定
+		m_pBird->SetPosition(D3DXVECTOR3(pos.x, pos.y + 100.0f, pos.z));
+		m_pBird->SetRotation(rot);
+	}
 
 	if (m_nCounter % 300 == 0)
 	{// 一定間隔

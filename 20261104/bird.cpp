@@ -29,7 +29,6 @@
 //************************************************************************
 // マクロ定義
 //************************************************************************
-#define VTX_NUM			(10)			// 頂点数
 
 //========================================================================
 // 鳥クラスの生成処理
@@ -81,13 +80,14 @@ CBird::CBird(const int nPriority) :CObject(nPriority)
 {
 	// 鳥クラスの値をクリア
 	m_pVtxBuff = nullptr;
+	m_pIdxBuff = nullptr;
 	m_vpBone.clear();
 	m_pPosOff = nullptr;
 	m_pIdxRef = nullptr;
 	m_pWeightValue = nullptr;
 	m_nNumBone = 0;
 	m_nNumVtx = 0;
-	m_nNumPoly = 0;
+	m_nNumIdx = 0;
 	m_pMotion = nullptr;
 	m_pos = DEFAULT_VECTOR3;
 	m_posOld = DEFAULT_VECTOR3;
@@ -95,6 +95,7 @@ CBird::CBird(const int nPriority) :CObject(nPriority)
 	m_rot = DEFAULT_VECTOR3;
 	m_rotDest = DEFAULT_VECTOR3;
 	m_scale = DEFAULT_VECTOR3;
+	m_block = DEFAULT_VECTOR2;
 	m_col = COLOR_WHITE;
 	m_fRadius = 0.0f;
 	m_fHeight = 0.0f;
@@ -206,6 +207,13 @@ void CBird::Uninit(void)
 		m_pVtxBuff = nullptr;
 	}
 
+	// インデックスバッファの破棄
+	if (m_pIdxBuff != nullptr)
+	{
+		m_pIdxBuff->Release();
+		m_pIdxBuff = nullptr;
+	}
+
 	// 自分自身を破棄
 	CObject::Release();
 }
@@ -216,29 +224,26 @@ void CBird::Uninit(void)
 void CBird::Update(void)
 {
 	CInputKeyboard* pInputKeyboard = CManager::GetInputKeyboard();		// キーボード入力の取得
-	D3DXVECTOR3 rot0 = m_vpBone.at(0)->GetRotation();
-	D3DXVECTOR3 rot1 = m_vpBone.at(1)->GetRotation();
 
-	if (pInputKeyboard->GetPress(DIK_T))
+	if (pInputKeyboard->GetPress(DIK_W))
 	{
-		rot0.x += 0.03f;
+		m_pos.z += 5.0f;
 	}
-	else if (pInputKeyboard->GetPress(DIK_G))
+	else if (pInputKeyboard->GetPress(DIK_S))
 	{
-		rot0.x -= 0.03f;
+		m_pos.z += -5.0f;
 	}
 
-	if (pInputKeyboard->GetPress(DIK_Y))
+	if (pInputKeyboard->GetPress(DIK_A))
 	{
-		rot1.x += 0.03f;
+		m_pos.x += -5.0f;
 	}
-	else if (pInputKeyboard->GetPress(DIK_H))
+	else if (pInputKeyboard->GetPress(DIK_D))
 	{
-		rot1.x -= 0.03f;
+		m_pos.x += 5.0f;
 	}
 
-	m_vpBone.at(0)->SetRotation(rot0);
-	m_vpBone.at(1)->SetRotation(rot1);
+	CEffect3D::Create(m_pos, DEFAULT_VECTOR3, false, 0.0f, false, 1, 5.0f, 0.0f, 0.0f, CEffect3D::TYPE_BLENDADD);
 
 	// モーションの更新処理
 	m_pMotion->Update();
@@ -276,10 +281,18 @@ void CBird::Draw(void)
 	D3DXMatrixTranslation(&mtxTrans, m_pos.x, m_pos.y, m_pos.z);
 	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxTrans);
 
-	D3DXVECTOR3 posCorrect[VTX_NUM];
-	memset(&posCorrect[0], 0, sizeof posCorrect);
+	//// ワールドマトリックスの設定
+	//pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
 
-	for (int nCntBone = 0; nCntBone < 2; nCntBone++)
+	D3DXVECTOR3* pPosCorrect = new D3DXVECTOR3[m_nNumVtx];
+
+	// 初期化
+	for (int nCntVtx = 0; nCntVtx < m_nNumVtx; nCntVtx++)
+	{
+		pPosCorrect[nCntVtx] = DEFAULT_VECTOR3;
+	}
+
+	for (int nCntBone = 0; nCntBone < m_nNumBone; nCntBone++)
 	{
 		// ボーンの描画（マトリックスの計算）
 		m_vpBone.at(nCntBone)->Draw();
@@ -304,11 +317,11 @@ void CBird::Draw(void)
 			// 頂点データの合計値を算出
 			if (m_pIdxRef[0 * m_nNumVtx + nCntVtx] == nCntBone)
 			{// 1つ目のボーン番号
-				posCorrect[nCntVtx] += pos * m_pWeightValue[0 * m_nNumVtx + nCntVtx];
+				pPosCorrect[nCntVtx] += pos * m_pWeightValue[0 * m_nNumVtx + nCntVtx];
 			}
 			else if (m_pIdxRef[1 * m_nNumVtx + nCntVtx] == nCntBone)
 			{// 2つ目のボーン番号
-				posCorrect[nCntVtx] += pos * m_pWeightValue[1 * m_nNumVtx + nCntVtx];
+				pPosCorrect[nCntVtx] += pos * m_pWeightValue[1 * m_nNumVtx + nCntVtx];
 			}
 		}
 	}
@@ -319,7 +332,13 @@ void CBird::Draw(void)
 	// 頂点座標を設定
 	for (int nCntVtx = 0; nCntVtx < m_nNumVtx; nCntVtx++)
 	{
-		pVtx[nCntVtx].pos = posCorrect[nCntVtx];
+		pVtx[nCntVtx].pos = pPosCorrect[nCntVtx];
+	}
+
+	if (pPosCorrect != nullptr)
+	{// NULLチェック
+		delete[] pPosCorrect;
+		pPosCorrect = nullptr;
 	}
 
 	// 頂点バッファをアンロックする
@@ -331,6 +350,9 @@ void CBird::Draw(void)
 	// 頂点バッファをデータストリームに設定
 	pDevice->SetStreamSource(0, m_pVtxBuff, 0, sizeof(VERTEX_3D));
 
+	// インデックスバッファをデータストリームに設定
+	pDevice->SetIndices(m_pIdxBuff);
+
 	// 頂点フォーマットの設定
 	pDevice->SetFVF(FVF_VERTEX_3D);
 
@@ -338,9 +360,8 @@ void CBird::Draw(void)
 	pDevice->SetTexture(0, nullptr);
 
 	// ポリゴンの描画
-	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP,
-		0,		// 描画する最初の頂点インデックス
-		m_nNumPoly);		// 描画するプリミティブ数
+	pDevice->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, 0, 0, m_nNumVtx, 0,
+		m_nNumIdx - 2);
 }
 
 //========================================================================
@@ -390,6 +411,342 @@ void CBird::SetColor(const D3DXCOLOR col)
 }
 
 //========================================================================
+// 法線を設定
+//========================================================================
+void CBird::SetNor(void)
+{
+	VERTEX_3D* pVtx;					// 頂点情報へのポインタ
+	D3DXVECTOR3 nor, nor1, nor2, nor3, nor4, nor5, nor6, vec1, vec2;
+
+	// 頂点バッファをロックし、頂点情報へのポインタを取得
+	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
+
+	// 法線の設定
+	for (int nCntY = 0; nCntY < (int)m_block.y + 1; nCntY++)
+	{
+		for (int nCntX = 0; nCntX < (int)m_block.x + 1; nCntX++)
+		{
+			// 頂点番号
+			int nVtx = nCntX + (nCntY * ((int)m_block.x + 1));
+
+			D3DXVECTOR3 vec1, vec2;
+			D3DXVECTOR3 nor, norA, norB, norC, norD, norE, norF;
+
+			nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+
+			// 法線の設定
+			if ((nCntY == 0 && nCntX == (int)m_block.x))
+			{// 法線ひとつ(右上)(▽)
+				vec1 = pVtx[nVtx + ((int)m_block.x + 1)].pos - pVtx[nVtx].pos;
+				vec2 = pVtx[nVtx - 1].pos - pVtx[nVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&nor, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&nor, &nor);
+			}
+			else if (nCntY == (int)m_block.y && nCntX == 0)
+			{// 法線ひとつ(左下)(△)
+				vec1 = pVtx[nVtx - ((int)m_block.x + 1)].pos - pVtx[nVtx].pos;
+				vec2 = pVtx[nVtx + 1].pos - pVtx[nVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&nor, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&nor, &nor);
+			}
+			else if (nCntY == 0 && nCntX == 0)
+			{// 法線ふたつ(左上)
+				// (△)
+				int nMainVtx = nVtx + ((int)m_block.x + 1);		// 真下の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx - ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx + 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norA, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norA, &norA);
+
+				// (▽)
+				nMainVtx = nVtx + 1;							// 真右の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx + ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx - 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norB, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norB, &norB);
+
+				nor = (norA + norB) / 2.0f;		// 最終的な法線方向
+			}
+			else if (nCntY == (int)m_block.y && nCntX == (int)m_block.x)
+			{// 法線ふたつ(右下)
+				// (△)
+				int nMainVtx = nVtx - 1;						// 真左の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx - ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx + 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norA, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norA, &norA);
+
+				// (▽)
+				nMainVtx = nVtx - ((int)m_block.x + 1);			// 真上の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx + ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx - 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norB, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norB, &norB);
+
+				nor = (norA + norB) / 2.0f;		// 最終的な法線方向
+			}
+			else if (nCntY == 0)
+			{// 法線みっつ(上の辺)
+				// (▽)
+				vec1 = pVtx[nVtx + ((int)m_block.x + 1)].pos - pVtx[nVtx].pos;
+				vec2 = pVtx[nVtx - 1].pos - pVtx[nVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norA, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norA, &norA);
+
+				// (△)
+				int nMainVtx = nVtx + ((int)m_block.x + 1);		// 真下の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx - ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx + 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norB, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norB, &norB);
+
+				// (▽)
+				nMainVtx = nVtx + 1;							// 真右の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx + ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx - 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norC, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norC, &norC);
+
+				nor = (norA + norB + norC) / 3.0f;		// 最終的な法線方向
+			}
+			else if (nCntY == (int)m_block.y)
+			{// 法線みっつ(下の辺)
+				// (△)
+				vec1 = pVtx[nVtx - ((int)m_block.x + 1)].pos - pVtx[nVtx].pos;
+				vec2 = pVtx[nVtx + 1].pos - pVtx[nVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norA, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norA, &norA);
+
+				// (△)
+				int nMainVtx = nVtx - 1;						// 真左の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx - ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx + 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norB, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norB, &norB);
+
+				// (▽)
+				nMainVtx = nVtx - ((int)m_block.x + 1);			// 真上の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx + ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx - 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norC, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norC, &norC);
+
+				nor = (norA + norB + norC) / 3.0f;		// 最終的な法線方向
+			}
+			else if (nCntX == 0)
+			{// 法線みっつ(左の辺)
+				// (△)
+				vec1 = pVtx[nVtx - ((int)m_block.x + 1)].pos - pVtx[nVtx].pos;
+				vec2 = pVtx[nVtx + 1].pos - pVtx[nVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norA, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norA, &norA);
+
+				// (△)
+				int nMainVtx = nVtx + ((int)m_block.x + 1);		// 真下の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx - ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx + 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norB, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norB, &norB);
+
+				// (▽)
+				nMainVtx = nVtx + 1;							// 真右の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx + ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx - 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norC, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norC, &norC);
+
+				nor = (norA + norB + norC) / 3.0f;		// 最終的な法線方向
+			}
+			else if (nCntX == (int)m_block.x)
+			{// 法線みっつ(右の辺)
+				// (▽)
+				vec1 = pVtx[nVtx + ((int)m_block.x + 1)].pos - pVtx[nVtx].pos;
+				vec2 = pVtx[nVtx - 1].pos - pVtx[nVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norA, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norA, &norA);
+
+				// (△)
+				int nMainVtx = nVtx - 1;						// 真左の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx - ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx + 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norB, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norB, &norB);
+
+				// (▽)
+				nMainVtx = nVtx - ((int)m_block.x + 1);			// 真上の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx + ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx - 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norC, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norC, &norC);
+
+				nor = (norA + norB + norC) / 3.0f;		// 最終的な法線方向
+			}
+			else
+			{// 中心部
+				// (右上△)
+				vec1 = pVtx[nVtx - ((int)m_block.x + 1)].pos - pVtx[nVtx].pos;
+				vec2 = pVtx[nVtx + 1].pos - pVtx[nVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norA, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norA, &norA);
+
+				// (左下▽)
+				vec1 = pVtx[nVtx + ((int)m_block.x + 1)].pos - pVtx[nVtx].pos;
+				vec2 = pVtx[nVtx - 1].pos - pVtx[nVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norB, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norB, &norB);
+
+				// (左上△)
+				int nMainVtx = nVtx - 1;						// 真左の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx - ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx + 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norC, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norC, &norC);
+
+				// (左上▽)
+				nMainVtx = nVtx - ((int)m_block.x + 1);			// 真上の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx + ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx - 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norD, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norD, &norD);
+
+				// (右下△)
+				nMainVtx = nVtx + ((int)m_block.x + 1);		// 真下の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx - ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx + 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norE, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norE, &norE);
+
+				// (右下▽)
+				nMainVtx = nVtx + 1;							// 真右の頂点に主頂点を設定
+
+				vec1 = pVtx[nMainVtx + ((int)m_block.x + 1)].pos - pVtx[nMainVtx].pos;
+				vec2 = pVtx[nMainVtx - 1].pos - pVtx[nMainVtx].pos;
+
+				// 外積
+				D3DXVec3Cross(&norF, &vec1, &vec2);
+
+				// 正規化
+				D3DXVec3Normalize(&norF, &norF);
+
+				nor = (norA + norB + norC + norD + norE + norF) / 6.0f;		// 最終的な法線方向
+			}
+
+			pVtx[nVtx].nor = nor;
+		}
+	}
+
+	// 頂点バッファをアンロックする
+	m_pVtxBuff->Unlock();
+}
+
+//========================================================================
 // 外部ファイルからボーンデータを読み込む
 //========================================================================
 HRESULT CBird::SetBone(const char* pFilename)
@@ -398,6 +755,7 @@ HRESULT CBird::SetBone(const char* pFilename)
 	CRenderer* pRenderer = CManager::GetRenderer();				// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();			// デバイスへのポインタ
 	VERTEX_3D* pVtx;
+	DWORD* pIdx;
 	std::string filename = pFilename;	// 読み込むファイル名
 	std::fstream file(filename);		// ファイル
 	std::string line = {};				// テキストを読み込む
@@ -415,7 +773,8 @@ HRESULT CBird::SetBone(const char* pFilename)
 
 	// 頂点設定用の変数
 	int nNumVtx = 0;						// 頂点の数
-	int nNumPoly = 0;						// プリミティブ数
+	D3DXVECTOR2 block = DEFAULT_VECTOR2;	// 分割数
+	int nNumIdx = 0;						// インデックスの数
 	D3DXVECTOR3 posVtx = DEFAULT_VECTOR3;	// 位置
 	int nBoneRef[2] = {};					// 影響を受けるボーン番号
 	float fWeightValue[2] = {};				// ボーンごとのウェイト
@@ -582,7 +941,7 @@ HRESULT CBird::SetBone(const char* pFilename)
 						}
 						else
 						{// 親がいる場合
-							m_vpBone.at(nCntBone)->SetParent(m_vpBone.at(nCntBone));
+							m_vpBone.at(nCntBone)->SetParent(m_vpBone.at(nIdxParent));
 						}
 					}
 				}
@@ -625,12 +984,13 @@ HRESULT CBird::SetBone(const char* pFilename)
 					file >> line;				// 次の情報
 				}
 
-				if (line.find("NUM_PRIMITIVE") != std::string::npos)
-				{// プリミティブ数
+				if (line.find("BLOCK") != std::string::npos)
+				{// 分割数
 					file >> line;				// =
-					file >> nNumPoly;			// 数字
+					file >> block.x;			// 分割数
+					file >> block.y;			// 分割数
 
-					m_nNumPoly = nNumPoly;
+					m_block = block;
 
 					file >> line;				// 次の情報
 				}
@@ -731,7 +1091,7 @@ HRESULT CBird::SetBone(const char* pFilename)
 					// 頂点情報を設定
 					pVtx[nCntVtx].pos = pos;
 					pVtx[nCntVtx].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-					pVtx[nCntVtx].col = COLOR_WHITE;
+					pVtx[nCntVtx].col = D3DXCOLOR(0.6f, 0.2f, 0.0f, 1.0f);
 					pVtx[nCntVtx].tex = texVtx;
 
 					// 各頂点の追加情報を設定
@@ -746,8 +1106,76 @@ HRESULT CBird::SetBone(const char* pFilename)
 				// 頂点バッファをアンロックする
 				m_pVtxBuff->Unlock();
 
+				// 法線を設定
+				SetNor();
+
 				continue;
 			}
+
+			if (line.find("INDEXSET") != std::string::npos)
+			{// インデックス設定
+				file >> line;				// 次の情報
+
+				if (line.find("NUM_INDEX") != std::string::npos)
+				{// 頂点数
+					file >> line;				// =
+					file >> nNumIdx;			// 数字
+
+					m_nNumIdx = nNumIdx;
+
+					if (m_pIdxBuff == nullptr)
+					{// NULLチェック
+						// インデックスバッファの生成
+						if (FAILED(pDevice->CreateIndexBuffer(sizeof(DWORD) * m_nNumIdx,
+							D3DUSAGE_WRITEONLY,
+							D3DFMT_INDEX32,
+							D3DPOOL_MANAGED,
+							&m_pIdxBuff,
+							NULL)))
+						{
+							OutputDebugStringA("! ! ! インデックスバッファの生成に失敗しました ! ! !\n");
+
+							continue;
+						}
+
+					}
+
+					file >> line;				// 次の情報
+				}
+
+				// インデックスバッファをロックし、頂点情報へのポインタを取得
+				m_pIdxBuff->Lock(0, 0, (void**)&pIdx, 0);
+
+				// インデックス情報読み込み
+				for (int nCntIdx = 0; nCntIdx < nNumIdx; nCntIdx++)
+				{
+					if (line.find("INDEX") != std::string::npos)
+					{// インデックス番号
+						int nIdx = -1;
+
+						file >> line;				// =
+						file >> nIdx;				// インデックス番号
+
+						pIdx[nCntIdx] = nIdx;
+
+						file >> line;				// 次の文字列
+
+						if (line.find("#") != std::string::npos)
+						{// コメント
+							std::getline(file, line);
+
+							// 次の文字列を読み込む
+							file >> line;			// 次の文字列
+						}
+					}
+				}
+
+				// インデックスバッファをアンロックする
+				m_pIdxBuff->Unlock();
+
+				continue;
+			}
+
 
 			if (line.find("MOTIONSET") != std::string::npos)
 			{// モーションの設定

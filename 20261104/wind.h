@@ -15,6 +15,7 @@
 // ‘O•ûéŒ¾
 //************************************************************************
 class CMeshOrbit;
+class CBird;
 
 //************************************************************************
 // •—ƒNƒ‰ƒX
@@ -27,8 +28,8 @@ public:
 
 	static HRESULT Load(const char* pFilename);
 	static void Unload(void);
-	static CWind* Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect);
-	HRESULT Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect);
+	static CWind* Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect, const bool bBird);
+	HRESULT Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect, const bool bBird);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);
@@ -48,6 +49,7 @@ private:
 	float m_fStrength;			// •—‚Ì‹­‚³
 	float m_fAngle;				// Y²‚É‘Î‚·‚éŒX‚«
 	float m_fAffect;			// ‰e‹¿—Í
+	CBird* m_pBird;				// ’¹‚ÌƒCƒ“ƒXƒ^ƒ“ƒX
 	CMeshOrbit* m_pMeshOrbit;	// ‹OÕ
 	float m_fFlow;				// ‹OÕ‚Ì”g‚¤‚¿
 	D3DXVECTOR3 m_randPos;		// ‹OÕ‚ÌêŠ

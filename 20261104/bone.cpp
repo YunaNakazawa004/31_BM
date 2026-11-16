@@ -127,8 +127,8 @@ void CBone::Draw(void)
 	}
 	else
 	{// 親ボーンがない場合
-		// 現在（最新）のマトリックスを取得する[ = プレイヤーのマトリックス]
-		pDevice->GetTransform(D3DTS_WORLD, &mtxParent);
+		// 自分のマトリックスを代入
+		mtxParent = mtxWorld;
 	}
 
 	// 算出した「パーツのワールドマトリックス」と「親のマトリックス」をかけ合わせる

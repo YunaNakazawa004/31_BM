@@ -79,18 +79,20 @@ public:
 	STATE GetState(void) { return m_state; }
 
 	float GetHeight(void) { return m_fHeight; }
+	void SetNor(void);
 
 private:
 	HRESULT SetBone(const char* pFilename);
 
 	LPDIRECT3DVERTEXBUFFER9 m_pVtxBuff;			// 頂点バッファへのポインタ
+	LPDIRECT3DINDEXBUFFER9 m_pIdxBuff;			// インデックスバッファへのポインタ
 	std::vector<CBone*> m_vpBone;				// ボーンのインスタンス
 	int m_nNumBone;								// ボーンの総数
 	D3DXVECTOR3* m_pPosOff;						// 頂点オフセットのデータ
 	int* m_pIdxRef;								// 影響を受けるボーン番号
 	float* m_pWeightValue;						// 各ボーンから受けるウェイト
 	int m_nNumVtx;								// 頂点の総数
-	int m_nNumPoly;								// プリミティブ数
+	int m_nNumIdx;								// インデックスの総数
 	CMotion* m_pMotion;							// モーションへのポインタ
 
 	D3DXMATRIX m_mtxWorld;			// ワールドマトリックス
@@ -100,6 +102,7 @@ private:
 	D3DXVECTOR3 m_rot;				// 向き
 	D3DXVECTOR3 m_rotDest;			// 目的の向き
 	D3DXVECTOR3 m_scale;			// スケール
+	D3DXVECTOR2 m_block;			// 分割数
 	D3DXCOLOR m_col;				// 色
 	float m_fRadius;				// 半径
 	float m_fHeight;				// 高さ

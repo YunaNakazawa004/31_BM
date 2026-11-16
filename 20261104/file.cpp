@@ -188,6 +188,7 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 				D3DXVECTOR3 vec = DEFAULT_VECTOR3;		// 風の向き
 				float fStrength = 0.0f;					// 強さ
 				float fAffect = 0.0f;					// 影響力
+				int nBird = 0;							// 鳥の有無
 
 				file >> line;					// 次の文字
 
@@ -234,11 +235,19 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 
 					file >> line;				// 次の文字
 				}
+				
+				if (line.find("BIRD") != std::string::npos)
+				{// 鳥の有無
+					file >> line;				// =
+					file >> nBird;				// 鳥の有無
+
+					file >> line;				// 次の文字
+				}
 
 				if (line.find("END_WINDSET") != std::string::npos)
 				{// 風設定を終わる
 					CWind::Load(pModelFile.c_str());
-					pObject = CWind::Create(pos, vec, fStrength, fAffect);
+					pObject = CWind::Create(pos, vec, fStrength, fAffect, nBird);
 
 					continue;
 				}
