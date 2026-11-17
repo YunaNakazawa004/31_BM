@@ -58,6 +58,7 @@ public:
 		TYPE_PARTICLE2D,		// パーティクル2D
 		TYPE_PARTICLE3D,		// パーティクル3D
 		TYPE_BALL,				// ボール
+		TYPE_BALLMANAGER,		// ボールマネージャー
 		TYPE_WIND,				// 風
 		TYPE_FIELD,				// 地面
 		TYPE_WALL,				// 壁

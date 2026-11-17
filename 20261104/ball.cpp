@@ -86,7 +86,7 @@ void CBall::Unload(void)
 //========================================================================
 // 球クラスの生成処理
 //========================================================================
-CBall* CBall::Create(const D3DXVECTOR3 pos, const float fRadius, const float fJump,
+CBall* CBall::Create(const D3DXVECTOR3 pos, const float fRadius,
 	const float fSpeed, const float fSpeedInertia)
 {
 #ifndef LIST
@@ -112,7 +112,7 @@ CBall* CBall::Create(const D3DXVECTOR3 pos, const float fRadius, const float fJu
 		pBall->BindModel(m_nIdxModel);
 
 		// 初期化処理
-		if (FAILED(pBall->Init(pos, fRadius, fJump, fSpeed, fSpeedInertia)))
+		if (FAILED(pBall->Init(pos, fRadius, fSpeed, fSpeedInertia)))
 		{// もし失敗した場合
 			OutputDebugStringA("! ! ! 球の初期化に失敗しました ! ! !\n");
 
@@ -140,10 +140,6 @@ CBall::CBall(const int nPriority) :CObjectX(nPriority)
 	m_move = DEFAULT_VECTOR3;
 	m_rotDest = DEFAULT_VECTOR3;
 	m_rotOld = DEFAULT_VECTOR3;
-	m_bJump = false;
-	m_fJumpHeight = 0.0f;
-	m_bCharge = false;
-	m_fSpinAngle = 0.0f;
 	m_state = STATE_NORMAL;
 	m_nCounterState = 0;
 	m_pMeshOrbit = nullptr;
@@ -154,8 +150,6 @@ CBall::CBall(const int nPriority) :CObjectX(nPriority)
 	m_fSpeedRot = 0.0f;
 	m_fSpeedInertia = 0.0f;
 	m_fRadius = 0.0f;
-	m_pWindLeft = nullptr;
-	m_pWindRight = nullptr;
 	m_nCounter = 0;
 }
 
@@ -169,7 +163,7 @@ CBall::~CBall()
 //========================================================================
 // 球クラスの初期化処理
 //========================================================================
-HRESULT CBall::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJump,
+HRESULT CBall::Init(const D3DXVECTOR3 pos, const float fRadius,
 	const float fSpeed, const float fSpeedInertia)
 {
 	// 初期化処理
@@ -180,10 +174,6 @@ HRESULT CBall::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJum
 	m_move = DEFAULT_VECTOR3;
 	m_rotDest = D3DXVECTOR3(0.0f, D3DX_PI, 0.0f);
 	m_rotOld = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
-	m_bJump = false;
-	m_fJumpHeight = fJump;
-	m_bCharge = false;
-	m_fSpinAngle = 0.0f;
 	m_state = STATE_NORMAL;
 	m_nCounterState = 0;
 	m_vecAxis = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
@@ -193,26 +183,12 @@ HRESULT CBall::Init(const D3DXVECTOR3 pos, const float fRadius, const float fJum
 	m_fRadius = fRadius;
 	m_nCounter = 0;
 
-	// 風の生成
-	if (m_pWindLeft == nullptr)
-	{// NULLチェック
-		m_pWindLeft = CWind::Create(D3DXVECTOR3(pos.x - 200.0f, pos.y, pos.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 3.0f, 0.4f, true);
-	}
-
-	if (m_pWindRight == nullptr)
-	{// NULLチェック
-		m_pWindRight = CWind::Create(D3DXVECTOR3(pos.x + 200.0f, pos.y, pos.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 3.0f, 0.4f, true);
-	}
-
 	D3DXVECTOR3 scale = CBall::GetScale();
 	scale.x = m_fRadius / DEFAULT_SIZE;
 	scale.y = m_fRadius / DEFAULT_SIZE;
 	scale.z = m_fRadius / DEFAULT_SIZE;
 	SetScale(scale);
 	SetRotation(D3DXVECTOR3(0.0f, D3DX_PI, 0.0f));
-
-	// カメラの追従対象を設定
-	CManager::GetCamera()->SetFollow(this);
 
 	return S_OK;
 }
@@ -254,31 +230,6 @@ void CBall::Update(void)
 	SubControll();
 #endif
 
-	// 風の移動
-	m_pWindLeft->StickControll(CInputJoypad::JOYKEY_LEFTSTICK);
-	m_pWindRight->StickControll(CInputJoypad::JOYKEY_RIGHTSTICK);
-
-	if (m_bJump == false && m_bCharge == false)
-	{// ジャンプしていないとき
-		if (pInputKeyboard->GetTrigger(DIK_SPACE) == true || pInputJoypad->GetTrigger(0, CInputJoypad::JOYKEY_A) == true)
-		{// ジャンプ
-			m_bJump = true;
-			m_move.y = m_fJumpHeight;
-
-			// パーティクルの法線
-			D3DXVECTOR3 nor;
-			nor.x = sinf(m_rotDest.y);
-			nor.y = 1.0f;
-			nor.z = cosf(m_rotDest.y);
-			D3DXVec3Normalize(&nor, &nor);
-
-			// 煙パーティクル
-			CParticleX::Create("data\\MODEL\\smoke.x", D3DXVECTOR3(pos.x, 0.0f, pos.z), 1, 20,
-				nor, D3DXVECTOR3(D3DX_PI * 0.4f, D3DX_PI * 0.5f, D3DX_PI * 0.4f),
-				D3DXVECTOR3(3.0f, 3.0f, 3.0f), 0.97f, CParticleX::TYPE_BOUND, true, 200, 2.0f, true, m_fRadius);
-		}
-	}
-
 	// 回転軸を設定
 	m_vecAxis.x = sinf(rot.y - D3DX_PI * 0.5f);
 	m_vecAxis.z = cosf(rot.y - D3DX_PI * 0.5f);
@@ -288,41 +239,15 @@ void CBall::Update(void)
 	m_move.x = -sinf(rot.y) * MOVEMENT;
 	m_move.z = -cosf(rot.y) * MOVEMENT;
 
-	if (m_bCharge != true)
-	{// チャージしていないとき
-		// 位置に移動量を加算
-		pos += m_move;
+	// 位置に移動量を加算
+	pos += m_move;
 
-		// 移動量に慣性
-		m_move.y += GRAVITY;
-		m_fValueRot += (0.0f - m_fValueRot) * SPEED_INERTIA;
-	}
+	// 移動量に慣性
+	m_move.y += GRAVITY;
+	m_fValueRot += (0.0f - m_fValueRot) * SPEED_INERTIA;
 
 	if (pos.y - m_fRadius < 0.0f)
 	{// 地面との当たり判定
-		if (m_bJump == true)
-		{// 着地
-			m_move.y *= BOUND;
-
-			// パーティクルの法線
-			D3DXVECTOR3 nor;
-			nor.x = sinf(m_rotDest.y);
-			nor.y = 1.0f;
-			nor.z = cosf(m_rotDest.y);
-			D3DXVec3Normalize(&nor, &nor);
-
-			// 煙パーティクル
-			CParticleX::Create("data\\MODEL\\smoke.x", D3DXVECTOR3(pos.x, 0.0f, pos.z), 1, 20,
-				nor, D3DXVECTOR3(D3DX_PI * 0.4f, D3DX_PI * 0.5f, D3DX_PI * 0.4f),
-				D3DXVECTOR3(3.0f, 3.0f, 3.0f), 0.97f, CParticleX::TYPE_BOUND, true, 200, 2.0f, true, m_fRadius);
-
-			// 振動
-			pInputJoypad->SetVibration(0, 6000, 10000, 3);
-
-			// 音
-			CManager::GetSound()->PlaySound(CSound::SE_LAND);
-		}
-
 		pos.y = m_fRadius;
 
 		if (m_nCounter % 10 == 0 && MOVEMENT > 0.0f)
@@ -331,37 +256,12 @@ void CBall::Update(void)
 			pInputJoypad->SetVibration(0, 250, 300, 1);
 		}
 
-		if (m_move.y > -ANTI_BOUND && m_move.y < ANTI_BOUND && m_bJump == true)
-		{// バウンドしなくなった
-			m_bJump = false;
-			m_move.y = 0.0f;
-
-			// パーティクルの法線
-			D3DXVECTOR3 nor;
-			nor.x = sinf(m_rotDest.y);
-			nor.y = 1.0f;
-			nor.z = cosf(m_rotDest.y);
-			D3DXVec3Normalize(&nor, &nor);
-
-			// 煙パーティクル
-			CParticleX::Create("data\\MODEL\\smoke.x", D3DXVECTOR3(pos.x, 0.0f, pos.z), 1, 20,
-				nor, D3DXVECTOR3(D3DX_PI * 0.4f, D3DX_PI * 0.5f, D3DX_PI * 0.4f),
-				D3DXVECTOR3(3.0f, 3.0f, 3.0f), 0.97f, CParticleX::TYPE_BOUND, true, 200, 2.0f, true, m_fRadius);
-
-			// 振動
-			pInputJoypad->SetVibration(0, 6000, 10000, 3);
-
-			// 音
-			CManager::GetSound()->PlaySound(CSound::SE_LAND);
-		}
 	}
-	else if (pos.y - m_fRadius > 0.0f)
-	{// 空中にいる
-		m_bJump = true;
-	}
+
+	D3DXVECTOR2 move = D3DXVECTOR2(m_move.x, m_move.z);
 
 	// 移動速度に応じてフィードバックエフェクト
-	if (D3DXVec3Length(&m_move) >= 5.0f && m_bJump == true)
+	if (D3DXVec2Length(&move) >= 5.0f)
 	{// 速い
 		// マルチターゲットレンダリングON
 		CManager::GetMTRenderer()->SetMultiRendering(true);
@@ -374,18 +274,6 @@ void CBall::Update(void)
 
 	// メッシュウォールとの当たり判定
 	CWallMM::CollisionAll(&pos, &m_posOld, m_fRadius);
-
-	// 風の影響
-	CManager::GetWind()->WindAffect(&pos, &m_vecAxis, &m_rotDest, &m_fValueRot);
-
-	// 左右の風の影響
-	m_pWindLeft->WindAffect(&pos, &m_vecAxis, &m_rotDest, &m_fValueRot);
-	m_pWindRight->WindAffect(&pos, &m_vecAxis, &m_rotDest, &m_fValueRot);
-
-	// 風の自動移動
-	CManager::GetWind()->AutoMove(D3DXVECTOR3(0.0f, 0.0f, pos.z - m_posOld.z));
-	m_pWindLeft->AutoMove(pos - m_posOld);
-	m_pWindRight->AutoMove(pos - m_posOld);
 
 	// 移動制限
 	if (pos.x + m_fRadius > CManager::GetLimit().x)
@@ -732,4 +620,92 @@ void CBall::SubControll(void)
 			m_fSpeedInertia = MIN_SPEED_INERTIA;
 		}
 	}
+}
+
+//========================================================================
+// 当たり判定
+//========================================================================
+CBall* CBall::Collision(const D3DXVECTOR3 pos, const float fRadius, const bool bOwn)
+{
+	CBall* pColl = nullptr;
+
+	for (int nCntPri = 0; nCntPri < PRIORITY_MAX; nCntPri++)
+	{
+#ifdef LIST
+		CObject* pObj = CObject::GetTop(nCntPri);
+
+		while (pObj != nullptr)
+		{
+			CObject* pObjNext = pObj->GetNext();			// 次のオブジェクトを保存
+			CObject::TYPE type;
+
+			// オブジェクトの種類を取得
+			type = pObj->GetType();
+
+			if (type == CObject::TYPE_BALL)
+			{// 球オブジェクトなら当たり判定する
+				D3DXVECTOR3 posBalloon, dist;
+
+				// 球の位置を取得
+				posBalloon = dynamic_cast<CBall*>(pObj)->GetPosition();
+
+				// 距離を計算
+				dist = pos - posBalloon;
+
+				if ((D3DXVec3Length(&dist) < dynamic_cast<CBall*>(pObj)->GetRadius() + fRadius))
+				{// 球と重なった
+					if (bOwn == true)
+					{// 球どうしで当たり判定しているとき
+						return dynamic_cast<CBall*>(pObj);
+					}
+
+					pColl = dynamic_cast<CBall*>(pObj);
+				}
+			}
+
+			pObj = pObjNext;			// 次のオブジェクトを代入
+		}
+
+#else
+		for (int nCntObj = 0; nCntObj < MAX_OBJECT; nCntObj++)
+		{
+			CObject* pObj;
+
+			// オブジェクトを取得
+			pObj = GetObject(nCntPri, nCntObj);
+
+			if (pObj != nullptr)
+			{// NULLチェック
+				CObject::TYPE type;
+
+				// オブジェクトの種類を取得
+				type = pObj->GetType();
+
+				if (type == CObject::TYPE_BALL)
+				{// 球オブジェクトなら当たり判定する
+					D3DXVECTOR3 posBalloon, dist;
+
+					// 球の位置を取得
+					posBalloon = dynamic_cast<CBall*>(pObj)->GetPosition();
+
+					// 距離を計算
+					dist = pos - posBalloon;
+
+					if ((D3DXVec3Length(&dist) < dynamic_cast<CBall*>(pObj)->GetRadius() + fRadius))
+					{// 球と重なった
+						if (bOwn == true)
+						{// 球どうしで当たり判定しているとき
+							return dynamic_cast<CBall*>(pObj);
+						}
+
+						pColl = dynamic_cast<CBall*>(pObj);
+					}
+				}
+			}
+		}
+
+#endif
+	}
+
+	return pColl;
 }

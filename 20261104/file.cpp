@@ -8,6 +8,7 @@
 
 #include "manager.h"
 #include "ball.h"
+#include "ball_manager.h"
 #include "wind.h"
 #include "field.h"
 #include "wallMM.h"
@@ -113,11 +114,10 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 				}
 			}
 
-			if (line.find("PLAYERSET") != std::string::npos && type == CObject::TYPE_BALL)
-			{// プレイヤーを設定
+			if (line.find("BALLSET") != std::string::npos && type == CObject::TYPE_BALL)
+			{// 球の情報を設定
 				std::string pModelFile = "";			// モデルファイル名
-				D3DXVECTOR3 pos = DEFAULT_VECTOR3;		// 初期位置
-				float fRadius = 0.0f, fJump = 0.0f;		// 半径、ジャンプ量
+				float fRadius = 0.0f;					// 半径
 				float fSpeed = 0.0f, fInertia = 0.0f;	// 回転速度、回転減衰
 
 				file >> line;					// 次の文字
@@ -130,16 +130,6 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 					file >> line;				// 次の文字
 				}
 				
-				if (line.find("POS") != std::string::npos)
-				{// 初期位置
-					file >> line;				// =
-					file >> pos.x;				// 位置
-					file >> pos.y;				// 位置
-					file >> pos.z;				// 位置
-
-					file >> line;				// 次の文字
-				}
-
 				if (line.find("RADIUS") != std::string::npos)
 				{// 半径
 					file >> line;				// =
@@ -148,14 +138,6 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 					file >> line;				// 次の文字
 				}
 
-				if (line.find("JUMP") != std::string::npos)
-				{// ジャンプ
-					file >> line;				// =
-					file >> fJump;				// ジャンプ
-
-					file >> line;				// 次の文字
-				}
-				
 				if (line.find("SPEED") != std::string::npos)
 				{// 回転速度
 					file >> line;				// =
@@ -172,10 +154,10 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 					file >> line;				// 次の文字
 				}
 
-				if (line.find("END_PLAYERSET") != std::string::npos)
-				{// プレイヤー設定を終わる
+				if (line.find("END_BALLSET") != std::string::npos)
+				{// 球設定を終わる
 					CBall::Load(pModelFile.c_str());
-					pObject = CBall::Create(pos, fRadius, fJump, fSpeed, fInertia);
+					pObject = CBallManager::Create(fRadius, fSpeed, fInertia);
 
 					continue;
 				}

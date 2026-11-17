@@ -10,6 +10,7 @@
 #include "main.h"
 #include "objectX.h"
 #include "input.h"
+#include "ball.h"
 
 //************************************************************************
 // ëOï˚êÈåæ
@@ -36,7 +37,7 @@ public:
 
 	D3DXMATRIX MatrixCalc(void);
 
-	void WindAffect(D3DXVECTOR3* pPos, D3DXVECTOR3* pVecAxis, D3DXVECTOR3* pRotDest, float* pValueRot);
+	void WindAffect(CBall* pBall);
 	void StickControll(CInputJoypad::JOYKEY joykey);
 	void AutoMove(const D3DXVECTOR3 move);
 	void RandomRot(const float fValue);

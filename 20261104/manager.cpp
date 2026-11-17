@@ -25,6 +25,7 @@
 #include "objectBillboard.h"
 #include "number.h"
 #include "ball.h"
+#include "ball_manager.h"
 #include "wind.h"
 #include "bird.h"
 #include "meshwallM.h"
@@ -52,7 +53,7 @@ CLight* CManager::m_pLight = nullptr;					// ライトのインスタンス
 CTexture* CManager::m_pTexture = nullptr;				// テクスチャのインスタンス
 CXModel* CManager::m_pXModel = nullptr;					// モデル管理のインスタンス
 CEffectBatching* CManager::m_pEffectBatching = nullptr;	// バッチ描画エフェクトのインスタンス
-CBall* CManager::m_pBall = nullptr;						// ボールのインスタンス
+CBallManager* CManager::m_pBallManager = nullptr;		// ボールマネージャーのインスタンス
 CWind* CManager::m_pWind = nullptr;						// 風のインスタンス
 CTcpClient* CManager::m_pTcpClient = nullptr;			// TCP送受信のインスタンス
 int CManager::m_nCountFPS = 0;							// FPSカウンター
@@ -79,7 +80,7 @@ CManager::CManager()
 	m_pTexture = nullptr;
 	m_pXModel = nullptr;
 	m_pEffectBatching = nullptr;
-	m_pBall = nullptr;
+	m_pBallManager = nullptr;
 	m_pWind = nullptr;
 	m_pTcpClient = nullptr;
 	m_nCountFPS = 0;
@@ -285,23 +286,19 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	}
 
 	// ボールの生成
-	if (m_pBall == nullptr)
+	if (m_pBallManager == nullptr)
 	{// NULLチェック
-		m_pBall = dynamic_cast<CBall*>(CFile::SetObject("data\\object.txt", CObject::TYPE_BALL));
+		m_pBallManager = dynamic_cast<CBallManager*>(CFile::SetObject("data\\object.txt", CObject::TYPE_BALL));
 
-		if (m_pBall == nullptr)
+		if (m_pBallManager == nullptr)
 		{// NULLチェック
-			OutputDebugStringA("! ! ! ボールの生成に失敗しました ! ! !\n");
+			OutputDebugStringA("! ! ! ボールマネージャーの生成に失敗しました ! ! !\n");
 
 			return E_FAIL;
 		}
-	}
 
-	// 鳥の生成
-	CBird::Create(DEFAULT_VECTOR3, DEFAULT_VECTOR3);
-	
-	// 鳥の生成
-	CBird::Create(D3DXVECTOR3(100.0f,100.0f,100.0f), DEFAULT_VECTOR3);
+		m_pBallManager->Random(2, D3DXVECTOR3(0.0f, 0.0f, -9000.0f), 50.0f);
+	}
 
 	// FPSカウンタを初期化
 	m_nCountFPS = 0;
@@ -337,9 +334,9 @@ void CManager::Uninit(void)
 	}
 	
 	// ボールの破棄
-	if (m_pBall != nullptr)
+	if (m_pBallManager != nullptr)
 	{// NULLチェック
-		m_pBall = nullptr;
+		m_pBallManager = nullptr;
 	}
 
 	// バッチ描画エフェクトの破棄
@@ -598,7 +595,7 @@ void CManager::Reset(void)
 	CObject::ReleaseAll();
 	m_pEffectBatching->Reset();
 
-	m_pBall = nullptr;
+	m_pBallManager = nullptr;
 	m_pWind = nullptr;
 
 	// ポーズを解除
@@ -619,13 +616,13 @@ void CManager::Reset(void)
 	}
 
 	// ボールの生成
-	if (m_pBall == nullptr)
+	if (m_pBallManager == nullptr)
 	{// NULLチェック
-		m_pBall = dynamic_cast<CBall*>(CFile::SetObject("data\\object.txt", CObject::TYPE_BALL));
+		m_pBallManager = dynamic_cast<CBallManager*>(CFile::SetObject("data\\object.txt", CObject::TYPE_BALL));
 
-		if (m_pBall == nullptr)
+		if (m_pBallManager == nullptr)
 		{// NULLチェック
-			OutputDebugStringA("! ! ! ボールの生成に失敗しました ! ! !\n");
+			OutputDebugStringA("! ! ! ボールマネージャーの生成に失敗しました ! ! !\n");
 		}
 	}
 }

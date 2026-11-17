@@ -14,7 +14,6 @@
 // 前方宣言
 //************************************************************************
 class CMeshOrbit;
-class CWind;
 
 //************************************************************************
 // マクロ定義
@@ -35,14 +34,14 @@ public:
 		STATE_MAX
 	}STATE;
 
-	CBall(const int nPriority = PRIORITY_4);
+	CBall(const int nPriority = PRIORITY_3);
 	~CBall();
 
 	static HRESULT Load(const char* pFilename);
 	static void Unload(void);
-	static CBall* Create(const D3DXVECTOR3 pos, const float fRadius, const float fJump,
+	static CBall* Create(const D3DXVECTOR3 pos, const float fRadius,
 		const float fSpeed, const float fSpeedInertia);
-	HRESULT Init(const D3DXVECTOR3 pos, const float fRadius, const float fJump, 
+	HRESULT Init(const D3DXVECTOR3 pos, const float fRadius, 
 		const float fSpeed, const float fSpeedInertia);
 	void Uninit(void);
 	void Update(void);
@@ -51,9 +50,19 @@ public:
 
 	float GetRadius(void) { return m_fRadius; }
 	void SetMove(const D3DXVECTOR3 move) { m_move = move; }
+	D3DXVECTOR3 GetVelocity(void) { return GetPosition() - m_posOld; }
+	void SetVecAxis(const D3DXVECTOR3 vecAxis) { m_vecAxis = vecAxis; }
+	D3DXVECTOR3 GetVecAxis(void) { return m_vecAxis; }
+	void SetValueRot(const float fValueRot) { m_fValueRot = fValueRot; }
+	void AddValueRot(const float fValueRot) { m_fValueRot += fValueRot; }
+	float GetValueRot(void) { return m_fValueRot; }
+	void SetRotDest(const D3DXVECTOR3 rotDest) { m_rotDest = rotDest; }
+	D3DXVECTOR3 GetRotDest(void) { return m_rotDest; }
 
 	bool Movement(void);
 	void SubControll(void);
+
+	static CBall* Collision(const D3DXVECTOR3 pos, const float fRadius, const bool bOwn);
 
 private:
 	static int m_nIdxModel;		// モデルのインデックス
@@ -61,10 +70,6 @@ private:
 	D3DXVECTOR3 m_move;			// 移動量
 	D3DXVECTOR3 m_rotDest;		// 目的の向き
 	D3DXVECTOR3 m_rotOld;		// 前回の向き
-	bool m_bJump;				// ジャンプ
-	float m_fJumpHeight;		// ジャンプの高さ
-	bool m_bCharge;				// チャージ
-	float m_fSpinAngle;			// スピンの向き
 	STATE m_state;				// 状態
 	int m_nCounterState;		// 状態カウンター
 
@@ -76,9 +81,6 @@ private:
 	float m_fSpeedRot;			// 回転速度
 	float m_fSpeedInertia;		// 回転速度
 	float m_fRadius;			// 半径
-
-	CWind* m_pWindLeft;			// 左側の風
-	CWind* m_pWindRight;		// 右側の風
 
 	int m_nCounter;				// 汎用カウンター
 };

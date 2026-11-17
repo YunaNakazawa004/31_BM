@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ball_manager.cpp" />
     <ClCompile Include="bird.cpp" />
     <ClCompile Include="bone.cpp" />
     <ClCompile Include="camera.cpp" />
@@ -191,6 +192,7 @@
     <ClCompile Include="Xmodel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ball_manager.h" />
     <ClInclude Include="bird.h" />
     <ClInclude Include="bone.h" />
     <ClInclude Include="camera.h" />

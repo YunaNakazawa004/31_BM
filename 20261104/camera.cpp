@@ -12,6 +12,8 @@
 #include "input.h"
 
 #include "ball.h"
+#include "ball_manager.h"
+#include "wind.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -132,12 +134,12 @@ void CCamera::Update(void)
 	CInputMouse* pInputMouse = CManager::GetInputMouse();				// マウス入力の取得
 	CInputJoypad* pInputJoypad = CManager::GetInputJoypad();			// ジョイパッド入力の取得
 	CDebugProc* pDebugProc = CManager::GetDebugProc();					// デバッグ表示の取得
-	CBall* pBall;								// ボール取得
+	CBallManager* pBallManager;					// 球マネージャー
 	D3DXVECTOR3 MousePos;
 	static D3DXVECTOR3 ClickPos, CameraRot;		// クリックされた位置、クリックされた瞬間のカメラの向き
 	static float fCameraAngle;					// クリックされた瞬間のカメラの上下角度
 	static int nAutoCameraCounter = 0;			// カメラの回り込みまでのカウンター
-	D3DXVECTOR3 pos;
+	D3DXVECTOR3 pos, pos1, pos2;
 	D3DXVECTOR3 rot;
 
 	// マウス移動用
@@ -163,9 +165,17 @@ void CCamera::Update(void)
 	switch (m_type)
 	{
 	case TYPE_PLAYER:
-		pBall = CManager::GetBall();			// プレイヤー取得
-		pos = pBall->GetPosition();
-		rot = pBall->GetRotation();
+		pBallManager = CManager::GetBallManager();			// 球マネージャー取得
+
+		if (pBallManager == nullptr)
+		{// NULLチェック
+			m_type = TYPE_SOLO;
+		}
+
+		pos1 = pBallManager->GetWindLeft()->GetPosition();
+		pos2 = pBallManager->GetWindRight()->GetPosition();
+		pos = (pos1 + pos2) * 0.5f;
+		rot = DEFAULT_VECTOR3;
 
 		int nValueH, nValueV;
 		nAutoCameraCounter++;

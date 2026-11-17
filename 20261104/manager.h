@@ -33,7 +33,7 @@ class CLight;
 class CTexture;
 class CXModel;
 class CEffectBatching;
-class CBall;
+class CBallManager;
 class CWind;
 class CTcpClient;
 
@@ -63,7 +63,7 @@ public:
 	static CTexture* GetTexture(void) { return m_pTexture; }
 	static CXModel* GetXModel(void) { return m_pXModel; }
 	static CEffectBatching* GetEffectBatching(void) { return m_pEffectBatching; }
-	static CBall* GetBall(void) { return m_pBall; }
+	static CBallManager* GetBallManager(void) { return m_pBallManager; }
 	static CWind* GetWind(void) { return m_pWind; }
 	static CTcpClient* GetTcpClient(void) { return m_pTcpClient; }
 
@@ -95,7 +95,7 @@ private:
 	static CTexture* m_pTexture;					// テクスチャのインスタンス
 	static CXModel* m_pXModel;						// モデル管理のインスタンス
 	static CEffectBatching* m_pEffectBatching;		// バッチ描画エフェクトのインスタンス
-	static CBall* m_pBall;							// ボールのインスタンス
+	static CBallManager* m_pBallManager;			// ボールマネージャーのインスタンス
 	static CWind* m_pWind;							// 風のインスタンス
 	static CTcpClient* m_pTcpClient;				// TCP送受信のインスタンス
 

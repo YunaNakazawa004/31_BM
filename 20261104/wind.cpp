@@ -252,6 +252,9 @@ void CWind::Update(void)
 	// 位置を適用
 	SetPosition(pos);
 
+	// 自動移動
+	AutoMove(D3DXVECTOR3(0.0f, 0.0f, 1.0f));
+
 	if (m_pBird != nullptr)
 	{// 鳥が生成されている
 		// 鳥の位置/向きを設定
@@ -349,18 +352,24 @@ D3DXMATRIX CWind::MatrixCalc(void)
 //========================================================================
 // 風による影響を計算
 //========================================================================
-void CWind::WindAffect(D3DXVECTOR3* pPos, D3DXVECTOR3* pVecAxis, D3DXVECTOR3* pRotDest, float* pValueRot)
+void CWind::WindAffect(CBall* pBall)
 {
+	if (pBall == nullptr)
+	{// NULLチェック
+		return;
+	}
+
 	// ローカル変数
 	CDebugProc* pDebug = CManager::GetDebugProc();
-	D3DXVECTOR3 distVec = GetPosition() - *pPos;
+	D3DXVECTOR3 distVec = GetPosition() - pBall->GetPosition();
+	D3DXVECTOR3 ballRotDest = pBall->GetRotDest();
 	float fWindAngle = atan2f(m_vec.x, m_vec.z);
 	float fDistAngle = atan2f(distVec.x, distVec.z);
 
 	// 角度の計算
 	CorrectAngle(&fWindAngle, fWindAngle - fDistAngle);
 	float fSumAngle = (fWindAngle + fDistAngle) / 2.0f;
-	CorrectAngle(&fSumAngle, fSumAngle - pRotDest->y);
+	CorrectAngle(&fSumAngle, fSumAngle - ballRotDest.y);
 
 #ifdef _DEBUG
 	D3DXVECTOR3 line = GetPosition();
@@ -369,11 +378,21 @@ void CWind::WindAffect(D3DXVECTOR3* pPos, D3DXVECTOR3* pVecAxis, D3DXVECTOR3* pR
 	CLine::Create(GetPosition(), line, COLOR_MAGENTA, COLOR_WHITE);
 #endif
 
+	// 平面距離
+	D3DXVECTOR2 dist = D3DXVECTOR2(GetPosition().x - pBall->GetPosition().x, GetPosition().y - pBall->GetPosition().y);
+	float fDist = D3DXVec2Length(&dist);
+
+	if (fDist > 200.0f)
+	{// 遠すぎる場合は無視
+		return;
+	}
+
 	// 向きを設定
-	pRotDest->y += (fSumAngle - pRotDest->y) * m_fAffect;
+	ballRotDest.y += (fSumAngle - ballRotDest.y) * m_fAffect;
+	pBall->SetRotDest(ballRotDest);
 
 	// 回転量を設定
-	*pValueRot += m_fStrength * 0.0001f;
+	pBall->AddValueRot(m_fStrength * 0.0001f * ((200.0f - fDist) * 0.01f));
 }
 
 //========================================================================

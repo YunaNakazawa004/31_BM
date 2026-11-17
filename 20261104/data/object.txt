@@ -16,16 +16,14 @@ FIELDSET
 END_FIELDSET
 
 #---------------------------------------
-# プレイヤー
+# 球
 #---------------------------------------
-PLAYERSET
+BALLSET
 	MODELFILE = data\\MODEL\\weed.x
-	POS = 0.0 0.0 -9000.0
 	RADIUS = 20.0
-	JUMP = 9.0
 	SPEED = 0.002
 	INERTIA = 0.01
-END_PLAYERSET
+END_BALLSET
 
 #---------------------------------------
 # 風
