@@ -123,9 +123,24 @@ void CBallManager::Update(void)
 {
 	if (m_pWindLeft != nullptr && m_pWindRight != nullptr)
 	{// NULLチェック
+		CCamera* pCamera = CManager::GetCamera();
+		CDebugProc* pDebug = CManager::GetDebugProc();
+		D3DXVECTOR3 vecU = pCamera->GetVecU();
+
 		// 風の移動
 		m_pWindLeft->StickControll(CInputJoypad::JOYKEY_LEFTSTICK);
 		m_pWindRight->StickControll(CInputJoypad::JOYKEY_RIGHTSTICK);
+
+		float rotLeft = m_pWindLeft->GetRotation().y;
+		float rotRight = m_pWindRight->GetRotation().y;
+		float rotSum = rotLeft + rotRight;
+		vecU.x = rotSum * 0.05f;
+
+		pDebug->Print("左の風の向き : ( %f )\n", rotLeft);
+		pDebug->Print("右の風の向き : ( %f )\n", rotRight);
+		pDebug->Print("合計の風の向き : ( %f )\n", rotSum);
+
+		pCamera->SetVecU(vecU);
 
 		for (int nCntBall = 0; nCntBall < m_nNumBall; nCntBall++)
 		{

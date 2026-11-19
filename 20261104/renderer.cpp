@@ -12,6 +12,7 @@
 #include "effect_batching.h"
 #include "object.h"
 #include "camera.h"
+#include "shadowSt.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -169,6 +170,9 @@ void CRenderer::Draw(void)
 
 		// UI以外のオブジェクトの描画
 		CObject::DrawWOUI();
+
+		// ステンシルシャドウ
+		CShadowSt::DrawShadow();
 
 		// バッチ描画エフェクト
 		CEffectBatching* pEffectBatching = CManager::GetEffectBatching();

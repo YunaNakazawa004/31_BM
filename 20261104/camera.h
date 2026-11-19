@@ -55,6 +55,9 @@ public:
 	D3DXVECTOR3 GetPositionV(void) { return m_posV; }
 	D3DXVECTOR3 GetPositionR(void) { return m_posR; }
 	D3DXVECTOR3 GetRotation(void) { return m_rot; }
+	D3DXVECTOR3 GetVecU(void) { return m_vecU; }
+
+	void SetVecU(const D3DXVECTOR3 vecU);
 
 	void CorrectAngle(float* pAngle, float fAngle);
 
@@ -65,6 +68,7 @@ private:
 	D3DXVECTOR3 m_posRDest;			// 目的の注視点
 	D3DXVECTOR3 m_posVOff;			// オフセットの視点
 	D3DXVECTOR3 m_vecU;				// 上方向ベクトル
+	D3DXVECTOR3 m_vecUDest;			// 目的の上方向ベクトル
 	D3DXVECTOR3 m_rot;				// 向き
 	float m_fAngle;					// 上下移動用の角度
 	float m_fDistance;				// 視点と注視点の距離

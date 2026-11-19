@@ -346,20 +346,20 @@ void CBall::Update(void)
 
 	m_nCounter++;
 
-	// デバッグコメント
-	pDebug->Print("\n< PLAYER >\n");
-	pDebug->Print("タブ切り替え [ 0 ]\n");
+	//// デバッグコメント
+	//pDebug->Print("\n< PLAYER >\n");
+	//pDebug->Print("タブ切り替え [ 0 ]\n");
 
-	pDebug->Print("状態 : ( %s )\n", (m_state == STATE_NONE) ? "状態無し" : "通常状態");
-	pDebug->Print("位置 : ( %f %f %f )\n", pos.x, pos.y, pos.z);
-	pDebug->Print("移動ベクトル : ( %f %f %f )\n", m_move.x, m_move.y, m_move.z);
-	pDebug->Print("現在の向き : ( %f )\n", m_rotDest.y);
-	pDebug->Print("回転軸 : ( %f %f %f )\n", m_vecAxis.x, m_vecAxis.y, m_vecAxis.z);
-	pDebug->Print("回転角 : ( %f )\n", m_fValueRot);
-	pDebug->Print("移動量 : ( %f )\n", MOVEMENT);
-	pDebug->Print("半径 : ( %f )\n", m_fRadius);
-	pDebug->Print("回転速度 : ( %f )\n", SPEED);
-	pDebug->Print("回転減衰 : ( %f )\n", SPEED_INERTIA);
+	//pDebug->Print("状態 : ( %s )\n", (m_state == STATE_NONE) ? "状態無し" : "通常状態");
+	//pDebug->Print("位置 : ( %f %f %f )\n", pos.x, pos.y, pos.z);
+	//pDebug->Print("移動ベクトル : ( %f %f %f )\n", m_move.x, m_move.y, m_move.z);
+	//pDebug->Print("現在の向き : ( %f )\n", m_rotDest.y);
+	//pDebug->Print("回転軸 : ( %f %f %f )\n", m_vecAxis.x, m_vecAxis.y, m_vecAxis.z);
+	//pDebug->Print("回転角 : ( %f )\n", m_fValueRot);
+	//pDebug->Print("移動量 : ( %f )\n", MOVEMENT);
+	//pDebug->Print("半径 : ( %f )\n", m_fRadius);
+	//pDebug->Print("回転速度 : ( %f )\n", SPEED);
+	//pDebug->Print("回転減衰 : ( %f )\n", SPEED_INERTIA);
 
 #ifdef _DEBUG
 	// デバッグライン
@@ -380,13 +380,7 @@ void CBall::Draw(void)
 	CRenderer* pRenderer = CManager::GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	D3DXMATRIX mtxWorld;		// 計算用マトリックス
-	CInputKeyboard* pInputKeyboard = CManager::GetInputKeyboard();		// キーボード入力の取得
 	static bool bShadow = false;
-
-	if (pInputKeyboard->GetTrigger(DIK_O))
-	{
-		bShadow = (bShadow) ? false : true;
-	}
 
 	// 頂点法線正規化をオン
 	pDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
@@ -396,10 +390,6 @@ void CBall::Draw(void)
 
 	// 描画処理
 	CObjectX::Draw(mtxWorld);
-
-	if(bShadow)
-	// 描画処理
-	CObjectX::DrawShadow(mtxWorld, DEFAULT_VECTOR3, D3DXVECTOR3(0.0f, 1.0f, 0.0f));
 
 	// 頂点法線正規化をオフ
 	pDevice->SetRenderState(D3DRS_NORMALIZENORMALS, FALSE);

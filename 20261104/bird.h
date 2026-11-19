@@ -22,6 +22,7 @@
 class CModel;
 class CBone;
 class CMotion;
+class CShadowSt;
 
 //************************************************************************
 // 鳥クラス
@@ -78,6 +79,8 @@ public:
 	void SetState(const STATE state) { m_state = state; }
 	STATE GetState(void) { return m_state; }
 
+	void UpdateShadow(void);
+
 	float GetHeight(void) { return m_fHeight; }
 	void SetNor(void);
 
@@ -93,6 +96,8 @@ private:
 	float* m_pWeightValue;						// 各ボーンから受けるウェイト
 	int m_nNumVtx;								// 頂点の総数
 	int m_nNumIdx;								// インデックスの総数
+	std::vector<int> m_vnShadowVtx;				// 影の頂点の番号
+	int m_nNumShadowVtx;						// 影の頂点の総数
 	CMotion* m_pMotion;							// モーションへのポインタ
 
 	D3DXMATRIX m_mtxWorld;			// ワールドマトリックス
@@ -106,6 +111,8 @@ private:
 	D3DXCOLOR m_col;				// 色
 	float m_fRadius;				// 半径
 	float m_fHeight;				// 高さ
+
+	CShadowSt* m_pShadow;			// 影
 
 	STATE m_state;					// 状態
 	int m_nCounterState;			// 状態カウンター

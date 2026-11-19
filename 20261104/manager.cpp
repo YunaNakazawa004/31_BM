@@ -302,7 +302,7 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 			return E_FAIL;
 		}
 
-		m_pBallManager->Random(1, D3DXVECTOR3(0.0f, 0.0f, -8700.0f), 100.0f);
+		m_pBallManager->Random(2, D3DXVECTOR3(0.0f, 0.0f, -8700.0f), 100.0f);
 	}
 
 	// FPSƒJƒEƒ“ƒ^‚ğ‰Šú‰»

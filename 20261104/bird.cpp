@@ -21,6 +21,7 @@
 #include "effect3D.h"
 #include "particle3D.h"
 #include "object3D.h"
+#include "shadowSt.h"
 
 #include <iostream>
 #include <fstream>
@@ -99,6 +100,7 @@ CBird::CBird(const int nPriority) :CObject(nPriority)
 	m_col = COLOR_WHITE;
 	m_fRadius = 0.0f;
 	m_fHeight = 0.0f;
+	m_pShadow = nullptr;
 	m_state = STATE_NONE;
 	m_nCounterState = 0;
 	m_bDisp = true;
@@ -147,6 +149,17 @@ HRESULT CBird::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot)
 
 	// 初期モーションの設定
 	m_pMotion->Set(MOTIONTYPE_NEUTRAL, false, 0);
+
+	// 影を設定
+	if (m_pShadow == nullptr)
+	{// NULLチェック
+		m_pShadow = CShadowSt::Create(pos, 1);
+
+		if (m_pShadow != nullptr)
+		{// NULLチェック
+			m_pShadow->CreateCylinder(pos, D3DXVECTOR2((float)m_nNumShadowVtx - 1.0f, 1.0f));
+		}
+	}
 
 	return S_OK;
 }
@@ -243,10 +256,13 @@ void CBird::Update(void)
 		m_pos.x += 5.0f;
 	}
 
-	CEffect3D::Create(m_pos, DEFAULT_VECTOR3, false, 0.0f, false, 1, 5.0f, 0.0f, 0.0f, CEffect3D::TYPE_BLENDADD);
-
 	// モーションの更新処理
 	m_pMotion->Update();
+
+	// 影の位置設定
+	m_pShadow->SetPosition(m_pos);
+	m_pShadow->SetRotation(m_rot);
+	m_pShadow->SetColor(COLOR_WHITE_ALPHA);
 }
 
 //========================================================================
@@ -280,9 +296,6 @@ void CBird::Draw(void)
 	// 位置を反映
 	D3DXMatrixTranslation(&mtxTrans, m_pos.x, m_pos.y, m_pos.z);
 	D3DXMatrixMultiply(&m_mtxWorld, &m_mtxWorld, &mtxTrans);
-
-	//// ワールドマトリックスの設定
-	//pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
 
 	D3DXVECTOR3* pPosCorrect = new D3DXVECTOR3[m_nNumVtx];
 
@@ -362,6 +375,9 @@ void CBird::Draw(void)
 	// ポリゴンの描画
 	pDevice->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, 0, 0, m_nNumVtx, 0,
 		m_nNumIdx - 2);
+
+	// 影の更新
+	UpdateShadow();
 }
 
 //========================================================================
@@ -408,6 +424,42 @@ void CBird::SetColor(const D3DXCOLOR col)
 {
 	// 色を変更
 	m_col = col;
+}
+
+//========================================================================
+// 影の更新
+//========================================================================
+void CBird::UpdateShadow(void)
+{
+	VERTEX_3D* pVtx;					// 頂点情報へのポインタ
+
+	// 頂点バッファをロックし、頂点情報へのポインタを取得
+	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
+
+	for (int nCntShadow = 0; nCntShadow < m_pShadow->GetVtxNum(); nCntShadow++)
+	{
+		int nIdx = m_vnShadowVtx.at(nCntShadow % m_nNumShadowVtx);
+
+		if (nIdx < 0 || nIdx >= m_nNumVtx)
+		{// 範囲外の数値
+			continue;
+		}
+
+		if (m_pShadow != nullptr)
+		{// NULLチェック
+			D3DXVECTOR3 pos = pVtx[nIdx].pos;
+
+			if (nCntShadow / m_nNumShadowVtx == 1)
+			{// 下側の頂点の設定
+				pos.y = -200.0f;
+			}
+
+			m_pShadow->SetVtxPos(nCntShadow, pos);
+		}
+	}
+
+	// 頂点バッファをアンロックする
+	m_pVtxBuff->Unlock();
 }
 
 //========================================================================
@@ -779,6 +831,8 @@ HRESULT CBird::SetBone(const char* pFilename)
 	int nBoneRef[2] = {};					// 影響を受けるボーン番号
 	float fWeightValue[2] = {};				// ボーンごとのウェイト
 	D3DXVECTOR2 texVtx = DEFAULT_VECTOR2;	// テクスチャ座標
+	int nNumShadowVtx = 0;					// 影の頂点の数
+	int nNumShadow = -1;					// 影の頂点番号
 
 	// モーションセット用の変数
 	CMotion::INFO info = {};	// モーション情報
@@ -1176,6 +1230,33 @@ HRESULT CBird::SetBone(const char* pFilename)
 				continue;
 			}
 
+			if (line.find("SHADOWSET") != std::string::npos)
+			{// インデックス設定
+				file >> line;				// 次の情報
+
+				if (line.find("NUM_SHADOW_VTX") != std::string::npos)
+				{// 頂点数
+					file >> line;				// =
+					file >> nNumShadowVtx;		// 数字
+
+					m_nNumShadowVtx = nNumShadowVtx;
+
+					file >> line;				// 次の情報
+
+					for (int nCntShadow = 0; nCntShadow < m_nNumShadowVtx; nCntShadow++)
+					{
+						file >> line;				// =
+						file >> nNumShadow;			// 影の頂点番号
+
+						// 生成
+						m_vnShadowVtx.push_back(nNumShadow);
+
+						file >> line;				// 次の文字列
+					}
+				}
+
+				continue;
+			}
 
 			if (line.find("MOTIONSET") != std::string::npos)
 			{// モーションの設定
