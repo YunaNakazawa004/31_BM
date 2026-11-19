@@ -72,7 +72,7 @@ HRESULT CMTRenderer::Init(void)
 
 		// テクスチャレンダリング用Zバッファの生成
 		pDevice->CreateDepthStencilSurface(SCREEN_WIDTH, SCREEN_HEIGHT,
-			D3DFMT_D16,
+			D3DFMT_D24S8,
 			D3DMULTISAMPLE_NONE,
 			0,
 			TRUE,
@@ -92,7 +92,7 @@ HRESULT CMTRenderer::Init(void)
 		pDevice->SetDepthStencilSurface(m_pZBuffMT);
 
 		// レンダリングターゲット用テクスチャのクリア
-		pDevice->Clear(0, nullptr, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER), D3DCOLOR_RGBA(0, 0, 0, 0), 1.0f, 0);
+		pDevice->Clear(0, nullptr, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL), D3DCOLOR_RGBA(0, 0, 0, 0), 1.0f, 0);
 
 		// レンダリングターゲットをもとに戻す
 		pDevice->SetRenderTarget(0, pRenderDef);
@@ -448,7 +448,7 @@ void CMTRenderer::FirstMTRendering(void)
 	ChangeTarget(pCamera->GetPositionV(), pCamera->GetPositionR(), D3DXVECTOR3(0.0f, 1.0f, 0.0f));
 
 	// レンダリングターゲット用テクスチャのクリア
-	pDevice->Clear(0, nullptr, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER), D3DCOLOR_RGBA(0, 0, 0, 0), 1.0f, 0);
+	pDevice->Clear(0, nullptr, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL), D3DCOLOR_RGBA(0, 0, 0, 0), 1.0f, 0);
 }
 
 //========================================================================
@@ -506,7 +506,7 @@ void CMTRenderer::ResetMTRendering(void)
 		pDevice->SetDepthStencilSurface(m_pZBuffMT);
 
 		// レンダリングターゲット用テクスチャのクリア
-		pDevice->Clear(0, nullptr, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER), D3DCOLOR_RGBA(0, 0, 0, 0), 1.0f, 0);
+		pDevice->Clear(0, nullptr, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL), D3DCOLOR_RGBA(0, 0, 0, 0), 1.0f, 0);
 
 		// レンダリングターゲットをもとに戻す
 		pDevice->SetRenderTarget(0, pRenderDef);

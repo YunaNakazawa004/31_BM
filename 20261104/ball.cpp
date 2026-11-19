@@ -272,7 +272,7 @@ void CBall::Update(void)
 	D3DXVECTOR2 move = D3DXVECTOR2(m_move.x, m_move.z);
 
 	// 移動速度に応じてフィードバックエフェクト
-	if (D3DXVec2Length(&move) >= 0.0f)
+	if (D3DXVec2Length(&move) >= 5.0f)
 	{// 速い
 		// マルチターゲットレンダリングON
 		CManager::GetMTRenderer()->SetMultiRendering(true);
