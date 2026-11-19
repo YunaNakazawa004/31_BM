@@ -32,6 +32,7 @@
 #include "wallMM.h"
 #include "tcp_client.h"
 #include "protocol_ranking.h"
+#include "shadowSt.h"
 
 #include "effect2D.h"
 #include "effect3D.h"
@@ -255,6 +256,7 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	CEffect3D::Load();
 	CEffectBatching::Load();
 	CNumber::Load();
+	CShadowSt::Load("data\\MODEL\\shadowSt.x");
 
 	// バッチ描画エフェクトの生成
 	if (m_pEffectBatching == nullptr)
@@ -285,6 +287,9 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 		}
 	}
 
+	// 岩
+	CObjectX::Create(D3DXVECTOR3(0.0f, 0.0f, -8000.0f), CObject::TYPE_NONE, "data\\MODEL\\rock.x");
+
 	// ボールの生成
 	if (m_pBallManager == nullptr)
 	{// NULLチェック
@@ -297,7 +302,7 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 			return E_FAIL;
 		}
 
-		m_pBallManager->Random(2, D3DXVECTOR3(0.0f, 0.0f, -9000.0f), 50.0f);
+		m_pBallManager->Random(1, D3DXVECTOR3(0.0f, 0.0f, -8700.0f), 100.0f);
 	}
 
 	// FPSカウンタを初期化
@@ -316,6 +321,7 @@ void CManager::Uninit(void)
 	CObject::ReleaseAll();
 
 	// オブジェクトのモデルを破棄
+	CShadowSt::Unload();
 	CEffectX::Unload();
 	CWind::Unload();
 	CBall::Unload();
@@ -624,6 +630,8 @@ void CManager::Reset(void)
 		{// NULLチェック
 			OutputDebugStringA("! ! ! ボールマネージャーの生成に失敗しました ! ! !\n");
 		}
+
+		m_pBallManager->Random(4, D3DXVECTOR3(0.0f, 0.0f, -8700.0f), 100.0f);
 	}
 }
 

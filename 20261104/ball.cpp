@@ -25,6 +25,7 @@
 #include "particle3D.h"
 #include "particleX.h"
 #include "sand.h"
+#include "shadowSt.h"
 
 //************************************************************************
 // マクロ定義
@@ -40,7 +41,6 @@
 #define MIN_SPEED_INERTIA		(0.01f)									// 最低回転の慣性
 #define ROT						(D3DXVECTOR3(0.05f, 0.05f, 0.05f))		// 向き移動量
 #define GRAVITY					(-0.3f)									// 重力
-#define JUMP_HEIGHT				(m_fJumpHeight)							// ジャンプの高さ
 #define BOUND					(-0.7f)									// 跳ね返り
 #define ANTI_BOUND				(2.5f)									// 跳ね返りを消す値
 #define DEFAULT_SIZE			(10.0f)									// 規定のモデルサイズ
@@ -142,6 +142,7 @@ CBall::CBall(const int nPriority) :CObjectX(nPriority)
 	m_rotOld = DEFAULT_VECTOR3;
 	m_state = STATE_NORMAL;
 	m_nCounterState = 0;
+	m_pShadowSt = nullptr;
 	m_pMeshOrbit = nullptr;
 	D3DXMatrixIdentity(&m_mtxRot);
 	D3DXQuaternionIdentity(&m_quat);
@@ -189,6 +190,17 @@ HRESULT CBall::Init(const D3DXVECTOR3 pos, const float fRadius,
 	scale.z = m_fRadius / DEFAULT_SIZE;
 	SetScale(scale);
 	SetRotation(D3DXVECTOR3(0.0f, D3DX_PI, 0.0f));
+
+	// ステンシルシャドウを生成
+	if (m_pShadowSt == nullptr)
+	{// NULLチェック
+		m_pShadowSt = CShadowSt::Create(pos);
+
+		if (m_pShadowSt != nullptr)
+		{// NULLチェック
+			m_pShadowSt->SetScale(scale);
+		}
+	}
 
 	return S_OK;
 }
@@ -255,13 +267,12 @@ void CBall::Update(void)
 			// 振動
 			pInputJoypad->SetVibration(0, 250, 300, 1);
 		}
-
 	}
 
 	D3DXVECTOR2 move = D3DXVECTOR2(m_move.x, m_move.z);
 
 	// 移動速度に応じてフィードバックエフェクト
-	if (D3DXVec2Length(&move) >= 5.0f)
+	if (D3DXVec2Length(&move) >= 0.0f)
 	{// 速い
 		// マルチターゲットレンダリングON
 		CManager::GetMTRenderer()->SetMultiRendering(true);
@@ -305,6 +316,19 @@ void CBall::Update(void)
 	// 位置/向きを適用
 	SetPosition(pos);
 	SetRotation(rot);
+
+	// 影の位置を設定
+	if (m_pShadowSt != nullptr)
+	{// NULLチェック
+		D3DXVECTOR3 scale = m_pShadowSt->GetScale();
+		scale.x = m_fRadius / DEFAULT_SIZE;
+		scale.y = (m_fRadius / DEFAULT_SIZE) + (float)((int)pos.y % 10);
+		scale.z = m_fRadius / DEFAULT_SIZE;
+
+		m_pShadowSt->SetPosition(pos);
+		m_pShadowSt->SetScale(scale);
+		m_pShadowSt->SetColor(COLOR_WHITE_ALPHA);
+	}
 
 	// 軌跡を計算
 	D3DXMATRIX mtxWorld = MatrixCalc();
@@ -356,6 +380,13 @@ void CBall::Draw(void)
 	CRenderer* pRenderer = CManager::GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	D3DXMATRIX mtxWorld;		// 計算用マトリックス
+	CInputKeyboard* pInputKeyboard = CManager::GetInputKeyboard();		// キーボード入力の取得
+	static bool bShadow = false;
+
+	if (pInputKeyboard->GetTrigger(DIK_O))
+	{
+		bShadow = (bShadow) ? false : true;
+	}
 
 	// 頂点法線正規化をオン
 	pDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
@@ -366,6 +397,7 @@ void CBall::Draw(void)
 	// 描画処理
 	CObjectX::Draw(mtxWorld);
 
+	if(bShadow)
 	// 描画処理
 	CObjectX::DrawShadow(mtxWorld, DEFAULT_VECTOR3, D3DXVECTOR3(0.0f, 1.0f, 0.0f));
 
@@ -520,6 +552,11 @@ void CBall::SubControll(void)
 	CInputJoypad* pInputJoypad = CManager::GetInputJoypad();			// ジョイパッド入力の取得
 	D3DXVECTOR3 scale = CBall::GetScale();
 
+	if (pInputKeyboard->GetTrigger(DIK_SPACE) == true)
+	{// ジャンプ
+		m_move.y = 10.0f;
+	}
+
 	// パーティクルX
 	if (pInputKeyboard->GetTrigger(DIK_NUMPAD0) == true)
 	{
@@ -625,10 +662,8 @@ void CBall::SubControll(void)
 //========================================================================
 // 当たり判定
 //========================================================================
-CBall* CBall::Collision(const D3DXVECTOR3 pos, const float fRadius, const bool bOwn)
+CBall* CBall::Collision(const D3DXVECTOR3 pos, const float fRadius, const CObject* pOwn)
 {
-	CBall* pColl = nullptr;
-
 	for (int nCntPri = 0; nCntPri < PRIORITY_MAX; nCntPri++)
 	{
 #ifdef LIST
@@ -644,22 +679,24 @@ CBall* CBall::Collision(const D3DXVECTOR3 pos, const float fRadius, const bool b
 
 			if (type == CObject::TYPE_BALL)
 			{// 球オブジェクトなら当たり判定する
-				D3DXVECTOR3 posBalloon, dist;
+				if (pOwn == pObj)
+				{// 自分自身は判定しない
+					pObj = pObjNext;			// 次のオブジェクトを代入
+
+					continue;
+				}
+
+				D3DXVECTOR3 posBall, dist;
 
 				// 球の位置を取得
-				posBalloon = dynamic_cast<CBall*>(pObj)->GetPosition();
+				posBall = dynamic_cast<CBall*>(pObj)->GetPosition();
 
 				// 距離を計算
-				dist = pos - posBalloon;
+				dist = pos - posBall;
 
 				if ((D3DXVec3Length(&dist) < dynamic_cast<CBall*>(pObj)->GetRadius() + fRadius))
 				{// 球と重なった
-					if (bOwn == true)
-					{// 球どうしで当たり判定しているとき
-						return dynamic_cast<CBall*>(pObj);
-					}
-
-					pColl = dynamic_cast<CBall*>(pObj);
+					return dynamic_cast<CBall*>(pObj);
 				}
 			}
 
@@ -707,5 +744,5 @@ CBall* CBall::Collision(const D3DXVECTOR3 pos, const float fRadius, const bool b
 #endif
 	}
 
-	return pColl;
+	return nullptr;
 }

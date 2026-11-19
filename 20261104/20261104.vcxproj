@@ -184,6 +184,7 @@
     <ClCompile Include="ball.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="sand.cpp" />
+    <ClCompile Include="shadowSt.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="tcp_client.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -231,6 +232,7 @@
     <ClInclude Include="protocol_ranking.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="sand.h" />
+    <ClInclude Include="shadowSt.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="tcp_client.h" />
     <ClInclude Include="texture.h" />

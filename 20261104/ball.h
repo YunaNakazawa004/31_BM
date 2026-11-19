@@ -8,12 +8,14 @@
 #define _BALL_H_		// 2重インクルード防止のマクロを定義する
 
 #include "main.h"
+#include "object.h"
 #include "objectX.h"
 
 //************************************************************************
 // 前方宣言
 //************************************************************************
 class CMeshOrbit;
+class CShadowSt;
 
 //************************************************************************
 // マクロ定義
@@ -62,7 +64,7 @@ public:
 	bool Movement(void);
 	void SubControll(void);
 
-	static CBall* Collision(const D3DXVECTOR3 pos, const float fRadius, const bool bOwn);
+	static CBall* Collision(const D3DXVECTOR3 pos, const float fRadius, const CObject* pOwn);
 
 private:
 	static int m_nIdxModel;		// モデルのインデックス
@@ -72,6 +74,8 @@ private:
 	D3DXVECTOR3 m_rotOld;		// 前回の向き
 	STATE m_state;				// 状態
 	int m_nCounterState;		// 状態カウンター
+
+	CShadowSt* m_pShadowSt;		// ステンシルシャドウ
 
 	CMeshOrbit* m_pMeshOrbit;	// オービット
 	D3DXMATRIX m_mtxRot;		// 回転マトリックス（保存用）

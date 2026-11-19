@@ -137,6 +137,34 @@ void CBallManager::Update(void)
 			m_pWindRight->WindAffect(m_vpBall.at(nCntBall));
 		}
 
+		int nCntColl = 0;		// 当たり判定が完了した数
+
+		// 当たり判定
+		do
+		{
+			CBall* pBall = m_vpBall.at(nCntColl)->Collision(m_vpBall.at(nCntColl)->GetPosition(), m_fRadius, m_vpBall.at(nCntColl));
+
+			if (pBall != nullptr)
+			{// 当たっていた
+				// 反射する
+				D3DXVECTOR3 rotColl = pBall->GetRotation();
+				D3DXVECTOR3 vecNor = D3DXVECTOR3(sinf(rotColl.y), 0.0f, cosf(rotColl.y));
+				D3DXVec3Normalize(&vecNor, &vecNor);
+				D3DXVECTOR3 posOwn = m_vpBall.at(nCntColl)->GetPosition();
+				D3DXVECTOR2 vecRef = D3DXVECTOR2(posOwn.x - pBall->GetPosition().x, posOwn.z - pBall->GetPosition().z);
+				D3DXVec2Normalize(&vecRef, &vecRef);
+
+				m_vpBall.at(nCntColl)->SetPosition(D3DXVECTOR3(posOwn.x + (m_fRadius * vecRef.x), posOwn.y, posOwn.z + (m_fRadius * vecRef.y)));
+
+				nCntColl = 0;		// 最初から当たり判定しなおす
+
+				continue;
+			}
+
+			nCntColl++;		// ぶつかってないならカウントアップ
+
+		} while (nCntColl < m_nNumBall);
+
 		m_pos = (m_pWindLeft->GetPosition() + m_pWindRight->GetPosition()) * 0.5f;
 	}
 }
@@ -160,47 +188,20 @@ void CBallManager::Random(const int nValue, const D3DXVECTOR3 center, const floa
 
 	// ローカル変数
 	D3DXVECTOR3 pos = DEFAULT_VECTOR3;		// 設置する位置
-	D3DXVECTOR3 posOff = DEFAULT_VECTOR3;	// 設置する一個区画あたりの基準位置
-	D3DXVECTOR2 block = DEFAULT_VECTOR2;	// 区画の分割数
 	float fLengthX = (fRadius * 2.0f);	// 設置できる最大距離（X方向）
 	float fLengthZ = (fRadius * 2.0f);	// 設置できる最大距離（Z方向)
-	float fLengthAreaX = 0.0f;		// 一個区画あたりのX距離
-	float fLengthAreaZ = 0.0f;		// 一個区画あたりのZ距離
-	int nOneArea = 0;	// 一個区画あたりに設置する数
 	int nLoopNum = 0;	// 試行回数
-
-	// 区画の分割数を決める
-	if (nValue >= 25)
-	{// 最低数
-		block.x = 5.0f;
-		block.y = 5.0f;
-	}
-	else
-	{// それより小さい
-		block.x = sqrtf((float)nValue);
-		block.y = sqrtf((float)nValue);
-	}
-
-	// 一個区画あたりの情報を決める
-	nOneArea = (int)(((float)nValue + (block.x * block.y) - 1.0f) / (block.x * block.y));
-	fLengthAreaX = fLengthX / block.x;
-	fLengthAreaZ = fLengthZ / block.y;
 
 	do
 	{// 必要数設置できるまで繰り返す
-		// 所属する区画を決める
-		posOff.x = (((m_nNumBall / nOneArea) % (int)block.x) * fLengthAreaX) - fRadius;
-		posOff.y = 0.0f;
-		posOff.z = (((m_nNumBall / (nOneArea * (int)block.y)) % (int)block.y) * fLengthAreaZ) - fRadius;
-
-		// 区画内での位置を決める
-		pos.x = posOff.x + center.x + (rand() % (int)(fLengthAreaX * 100.0f)) / 100.0f;
-		pos.y = posOff.y + center.y;
-		pos.z = posOff.z + center.z + (rand() % (int)(fLengthAreaZ * 100.0f)) / 100.0f;
+		// 位置を決める
+		pos.x = center.x + (rand() % (int)(fLengthX * 100.0f)) / 100.0f - fRadius;
+		pos.y = center.y;
+		pos.z = center.z + (rand() % (int)(fLengthZ * 100.0f)) / 100.0f - fRadius;
 
 		// 重なり確認
-		if (CBall::Collision(pos, fRadius, true) == nullptr)
-		{// ぶつかる距離に風船がない
+		if (CBall::Collision(pos, fRadius, nullptr) == nullptr)
+		{// ぶつかる距離に球がない
 			// 生成
 			m_vpBall.push_back(CBall::Create(pos, m_fRadius, m_fSpeed, m_fSpeedInertia));
 			m_nNumBall++;
@@ -210,7 +211,7 @@ void CBallManager::Random(const int nValue, const D3DXVECTOR3 center, const floa
 
 		if (nLoopNum > ERROR_NUM)
 		{// 試行回数が多くなりすぎた
-			OutputDebugStringA("! ! ! 風船のランダム生成が完了しませんでした ! ! !\n");
+			OutputDebugStringA("! ! ! ランダム生成が完了しませんでした ! ! !\n");
 
 			break;
 		}
