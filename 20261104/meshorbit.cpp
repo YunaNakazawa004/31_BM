@@ -69,11 +69,9 @@ CMeshOrbit* CMeshOrbit::Create(const D3DXVECTOR3 Offset0, const D3DXVECTOR3 Offs
 //========================================================================
 // メッシュオービットクラスのコンストラクタ
 //========================================================================
-CMeshOrbit::CMeshOrbit(const int nPriority) :CObject(nPriority)
+CMeshOrbit::CMeshOrbit(const int nPriority) :CMesh(nPriority)
 {
 	// メッシュオービットクラスの値をクリア
-	m_pVtxBuff = NULL;
-	m_pIdxBuff = NULL;
 	memset(&m_aOffset[0], 0, sizeof m_aOffset);
 	memset(&m_aCol[0], 0, sizeof m_aCol);
 	memset(&m_aPosPoint[0], 0, sizeof m_aPosPoint);
@@ -100,6 +98,7 @@ HRESULT CMeshOrbit::Init(const D3DXVECTOR3 Offset0, const  D3DXVECTOR3 Offset1, 
 	VERTEX_3D* pVtx;						// 頂点情報へのポインタ
 	DWORD* pIdx;							// インデックス情報へのポインタ
 
+	SetScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
 	m_aOffset[0] = Offset0;
 	m_aOffset[1] = Offset1;
 	m_aCol[0] = col0;
@@ -113,16 +112,14 @@ HRESULT CMeshOrbit::Init(const D3DXVECTOR3 Offset0, const  D3DXVECTOR3 Offset1, 
 		D3DXVec3TransformCoord(&m_aPosPoint[nCntPoint + 1], &m_aOffset[1], &mtxParent);
 	}
 
-	// 頂点バッファの生成
-	pDevice->CreateVertexBuffer(sizeof(VERTEX_3D) * MAX_ORBIT_VTX,
-		D3DUSAGE_WRITEONLY,
-		FVF_VERTEX_3D,
-		D3DPOOL_MANAGED,
-		&m_pVtxBuff,
-		NULL);
+	// 頂点バッファを生成
+	if (FAILED(CreateVtxBuff(MAX_ORBIT_VTX)))
+	{// 失敗した場合
+		return E_FAIL;
+	}
 
 	// 頂点バッファをロックし、頂点情報へのポインタを取得
-	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
+	GetVtxBuff()->Lock(0, 0, (void**)&pVtx, 0);
 
 	// 頂点情報の設定
 	for (int nCntPoint = 0; nCntPoint < MAX_ORBIT_VTX; nCntPoint++)
@@ -143,18 +140,16 @@ HRESULT CMeshOrbit::Init(const D3DXVECTOR3 Offset0, const  D3DXVECTOR3 Offset1, 
 	}
 
 	// 頂点バッファをアンロックする
-	m_pVtxBuff->Unlock();
+	GetVtxBuff()->Unlock();
 
-	// インデックスバッファの生成
-	pDevice->CreateIndexBuffer(sizeof(DWORD) * MAX_ORBIT_VTX,
-		D3DUSAGE_WRITEONLY,
-		D3DFMT_INDEX32,
-		D3DPOOL_MANAGED,
-		&m_pIdxBuff,
-		NULL);
+	// インデックスバッファを生成
+	if (FAILED(CreateIdxBuff(MAX_ORBIT_VTX)))
+	{// 失敗した場合
+		return E_FAIL;
+	}
 
 	// インデックスバッファをロックし、頂点番号データへのポインタを取得
-	m_pIdxBuff->Lock(0, 0, (void**)&pIdx, 0);
+	GetIdxBuff()->Lock(0, 0, (void**)&pIdx, 0);
 
 	for (int nCntPoint = 0; nCntPoint < MAX_ORBIT_VTX; nCntPoint++)
 	{
@@ -164,7 +159,7 @@ HRESULT CMeshOrbit::Init(const D3DXVECTOR3 Offset0, const  D3DXVECTOR3 Offset1, 
 	}
 
 	// インデックスバッファをアンロックする
-	m_pIdxBuff->Unlock();
+	GetIdxBuff()->Unlock();
 
 	return S_OK;
 }
@@ -174,22 +169,8 @@ HRESULT CMeshOrbit::Init(const D3DXVECTOR3 Offset0, const  D3DXVECTOR3 Offset1, 
 //=============================================================================
 void CMeshOrbit::Uninit(void)
 {
-	// 頂点バッファの破棄
-	if (m_pVtxBuff != NULL)
-	{
-		m_pVtxBuff->Release();
-		m_pVtxBuff = NULL;
-	}
-
-	// インデックスバッファの破棄
-	if (m_pIdxBuff != NULL)
-	{
-		m_pIdxBuff->Release();
-		m_pIdxBuff = NULL;
-	}
-
-	// 自分自身を破棄
-	CObject::Release();
+	// 終了処理
+	CMesh::Uninit();
 }
 
 //=============================================================================
@@ -219,7 +200,7 @@ void CMeshOrbit::Update(void)
 	VERTEX_3D* pVtx;					// 頂点情報へのポインタ
 
 	// 頂点バッファをロックし、頂点情報へのポインタを取得
-	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
+	GetVtxBuff()->Lock(0, 0, (void**)&pVtx, 0);
 
 	// 頂点情報の設定
 	for (int nCntPoint = 0; nCntPoint < MAX_ORBIT_VTX; nCntPoint++)
@@ -241,7 +222,7 @@ void CMeshOrbit::Update(void)
 	}
 
 	// 頂点バッファをアンロックする
-	m_pVtxBuff->Unlock();
+	GetVtxBuff()->Unlock();
 }
 
 //=============================================================================
@@ -258,6 +239,7 @@ void CMeshOrbit::Draw(void)
 	CRenderer* pRenderer = CManager::GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();		// デバイスへのポインタ
 	CTexture* pTexture = CManager::GetTexture();			// テクスチャへのポインタ
+	D3DXMATRIX mtxWorld;
 
 	// アルファテストを有効にする
 	pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
@@ -275,16 +257,19 @@ void CMeshOrbit::Draw(void)
 	pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 
 	// ワールドマトリックスの初期化
-	D3DXMatrixIdentity(&m_mtxWorld);
+	D3DXMatrixIdentity(&mtxWorld);
 
 	// ワールドマトリックスの設定
-	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
+	pDevice->SetTransform(D3DTS_WORLD, &mtxWorld);
+
+	// マトリックスを設定
+	CMesh::SetMatrix(mtxWorld);
 
 	// 頂点バッファをデータストリームに設定
-	pDevice->SetStreamSource(0, m_pVtxBuff, 0, sizeof(VERTEX_3D));
+	pDevice->SetStreamSource(0, GetVtxBuff(), 0, sizeof(VERTEX_3D));
 
 	// インデックスバッファをデータストリームに設定
-	pDevice->SetIndices(m_pIdxBuff);
+	pDevice->SetIndices(GetIdxBuff());
 
 	// 頂点フォーマットの設定
 	pDevice->SetFVF(FVF_VERTEX_3D);

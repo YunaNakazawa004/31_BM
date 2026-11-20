@@ -63,6 +63,7 @@ public:
 		TYPE_SHADOW,			// 影
 		TYPE_FIELD,				// 地面
 		TYPE_WALL,				// 壁
+		TYPE_MESH,				// メッシュ
 		TYPE_MESHWALL,			// メッシュウォール
 		TYPE_MESHRING,			// メッシュリング
 		TYPE_MESHORBIT,			// メッシュオービット

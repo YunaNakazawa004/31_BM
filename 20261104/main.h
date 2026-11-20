@@ -39,7 +39,7 @@
 #define FVF_VERTEX_2D		(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1)					// 頂点フォーマット[2D]
 #define FVF_VERTEX_2D_MULTI	(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX2)					// 頂点フォーマット[2D_MULTI]
 #define FVF_VERTEX_3D		(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1)		// 頂点フォーマット[3D]
-#define FVF_VERTEX_3D_MALTI	(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX2)		// 頂点フォーマット[3D_MULTI]
+#define FVF_VERTEX_3D_MULTI	(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX2)		// 頂点フォーマット[3D_MULTI]
 #define MAX_PLAYER			(1)																// 最大プレイヤー数
 
 //************************************************************************
@@ -77,7 +77,7 @@ typedef struct
 }VERTEX_3D;
 
 //*****************************************************************************
-// 頂点情報[3D_MALTI]の構造体を定義
+// 頂点情報[3D_MULTI]の構造体を定義
 //*****************************************************************************
 typedef struct
 {
@@ -88,6 +88,6 @@ typedef struct
 	D3DXVECTOR2 tex;	// テクスチャの座標0(X,Y)
 	D3DXVECTOR2 texM;	// テクスチャの座標1(X,Y)
 
-}VERTEX_3D_MALTI;
+}VERTEX_3D_MULTI;
 
 #endif

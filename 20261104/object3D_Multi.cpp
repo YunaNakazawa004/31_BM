@@ -97,7 +97,7 @@ HRESULT CObject3DM::Init(const D3DXVECTOR3 pos,
 	// ローカル変数宣言
 	CRenderer* pRenderer = CManager::GetRenderer();			// レンダラーへのポインタ
 	LPDIRECT3DDEVICE9 pDevice = pRenderer->GetDevice();			// デバイスへのポインタ
-	VERTEX_3D_MALTI* pVtx;
+	VERTEX_3D_MULTI* pVtx;
 	D3DXVECTOR3 vec0, vec1, vec2, vec3;
 	D3DXVECTOR3 norA, norB;
 
@@ -106,9 +106,9 @@ HRESULT CObject3DM::Init(const D3DXVECTOR3 pos,
 	m_scale = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 
 	// 頂点バッファの生成
-	if (FAILED(pDevice->CreateVertexBuffer(sizeof(VERTEX_3D_MALTI) * 4,
+	if (FAILED(pDevice->CreateVertexBuffer(sizeof(VERTEX_3D_MULTI) * 4,
 		D3DUSAGE_WRITEONLY,
-		FVF_VERTEX_3D_MALTI,
+		FVF_VERTEX_3D_MULTI,
 		D3DPOOL_MANAGED,
 		&m_pVtxBuff,
 		nullptr)))
@@ -290,10 +290,10 @@ void CObject3DM::Draw(void)
 	pDevice->SetTransform(D3DTS_WORLD, &m_mtxWorld);
 
 	// 頂点バッファをデータストリームに設定
-	pDevice->SetStreamSource(0, m_pVtxBuff, 0, sizeof(VERTEX_3D_MALTI));
+	pDevice->SetStreamSource(0, m_pVtxBuff, 0, sizeof(VERTEX_3D_MULTI));
 
 	// 頂点フォーマットの設定
-	pDevice->SetFVF(FVF_VERTEX_3D_MALTI);
+	pDevice->SetFVF(FVF_VERTEX_3D_MULTI);
 
 	// テクスチャの設定
 	pDevice->SetTexture(0, pTexture->GetAddress(m_aIdxTexture[0]));
@@ -370,7 +370,7 @@ void CObject3DM::SetColor(const D3DXCOLOR col)
 {
 	m_col = col;
 
-	VERTEX_3D_MALTI* pVtx;
+	VERTEX_3D_MULTI* pVtx;
 
 	// 頂点バッファをロックし、頂点情報へのポインタを取得
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
@@ -390,7 +390,7 @@ void CObject3DM::SetColor(const D3DXCOLOR col)
 //========================================================================
 void CObject3DM::SetTexUV(const int nPatternAnim, const int nTexWidth, const int nTexHeight)
 {
-	VERTEX_3D_MALTI* pVtx;
+	VERTEX_3D_MULTI* pVtx;
 
 	// 頂点バッファをロックし、頂点情報へのポインタを取得
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
@@ -410,7 +410,7 @@ void CObject3DM::SetTexUV(const int nPatternAnim, const int nTexWidth, const int
 //========================================================================
 void CObject3DM::SetTexMUV(const int nPatternAnim, const int nTexWidth, const int nTexHeight)
 {
-	VERTEX_3D_MALTI* pVtx;
+	VERTEX_3D_MULTI* pVtx;
 
 	// 頂点バッファをロックし、頂点情報へのポインタを取得
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
@@ -430,7 +430,7 @@ void CObject3DM::SetTexMUV(const int nPatternAnim, const int nTexWidth, const in
 //========================================================================
 void CObject3DM::SetTexScroll(const float fScrollX, const float fScrollY)
 {
-	VERTEX_3D_MALTI* pVtx;
+	VERTEX_3D_MULTI* pVtx;
 
 	// 頂点バッファをロックし、頂点情報へのポインタを取得
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
@@ -450,7 +450,7 @@ void CObject3DM::SetTexScroll(const float fScrollX, const float fScrollY)
 //========================================================================
 void CObject3DM::SetTexMScroll(const float fScrollX, const float fScrollY)
 {
-	VERTEX_3D_MALTI* pVtx;
+	VERTEX_3D_MULTI* pVtx;
 
 	// 頂点バッファをロックし、頂点情報へのポインタを取得
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
@@ -476,7 +476,7 @@ float CObject3DM::GetHeight(const D3DXVECTOR3 pos)
 	float fposLine;			// 外積
 	float fDist;			// ポリゴンと現在位置との距離
 	int nCntLine = 0;		// 内側にいた回数
-	VERTEX_3D_MALTI* pVtx;
+	VERTEX_3D_MULTI* pVtx;
 
 	fDist = sqrtf((((m_pos.x - pos.x) * 2) * ((m_pos.x - pos.x) * 2)) +
 		(((m_pos.z - pos.z) * 2) * ((m_pos.z - pos.z) * 2))) * 0.5f;
