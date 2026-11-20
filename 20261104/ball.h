@@ -51,6 +51,7 @@ public:
 	D3DXMATRIX MatrixCalc(void);
 
 	float GetRadius(void) { return m_fRadius; }
+	D3DXVECTOR3 GetPosOld(void) { return m_posOld; }
 	void SetMove(const D3DXVECTOR3 move) { m_move = move; }
 	D3DXVECTOR3 GetVelocity(void) { return GetPosition() - m_posOld; }
 	void SetVecAxis(const D3DXVECTOR3 vecAxis) { m_vecAxis = vecAxis; }

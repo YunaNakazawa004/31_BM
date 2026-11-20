@@ -45,7 +45,9 @@ public:
 
 	void SetCamera(void);
 	void SetPosition(D3DXVECTOR3 posV, D3DXVECTOR3 posR, D3DXVECTOR3 rot, TYPE type);
+	void SetAngle(float fAngle);
 	void SetViewAngle(float fViewAngle);
+	void SetVecU(const D3DXVECTOR3 vecU);
 	void SetShake(const float fValue);
 	void SetType(const TYPE type) { m_type = type; }
 	void SetFollow(CObject* pFollow);
@@ -56,8 +58,7 @@ public:
 	D3DXVECTOR3 GetPositionR(void) { return m_posR; }
 	D3DXVECTOR3 GetRotation(void) { return m_rot; }
 	D3DXVECTOR3 GetVecU(void) { return m_vecU; }
-
-	void SetVecU(const D3DXVECTOR3 vecU);
+	float GetAngle(void) { return m_fAngle; }
 
 	void CorrectAngle(float* pAngle, float fAngle);
 
@@ -71,6 +72,7 @@ private:
 	D3DXVECTOR3 m_vecUDest;			// 目的の上方向ベクトル
 	D3DXVECTOR3 m_rot;				// 向き
 	float m_fAngle;					// 上下移動用の角度
+	float m_fAngleDest;				// 目的の上下移動用の角度
 	float m_fDistance;				// 視点と注視点の距離
 	float m_fRDistance;				// 注視点の差異
 	float m_fViewAngle;				// 視野角

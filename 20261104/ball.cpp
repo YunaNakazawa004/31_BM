@@ -48,6 +48,9 @@
 #define MIN_SIZE				(5.0f)									// 最小サイズ
 #define REFLECT_INTERVAL		(30)									// 反射後の移動インターバル
 
+#define INFORMATIONENABLE		// 球の情報をコメント化
+#undef INFORMATIONENABLE
+
 //************************************************************************
 // 静的メンバ変数宣言
 //************************************************************************
@@ -346,20 +349,20 @@ void CBall::Update(void)
 
 	m_nCounter++;
 
-	//// デバッグコメント
-	//pDebug->Print("\n< PLAYER >\n");
-	//pDebug->Print("タブ切り替え [ 0 ]\n");
-
-	//pDebug->Print("状態 : ( %s )\n", (m_state == STATE_NONE) ? "状態無し" : "通常状態");
-	//pDebug->Print("位置 : ( %f %f %f )\n", pos.x, pos.y, pos.z);
-	//pDebug->Print("移動ベクトル : ( %f %f %f )\n", m_move.x, m_move.y, m_move.z);
-	//pDebug->Print("現在の向き : ( %f )\n", m_rotDest.y);
-	//pDebug->Print("回転軸 : ( %f %f %f )\n", m_vecAxis.x, m_vecAxis.y, m_vecAxis.z);
-	//pDebug->Print("回転角 : ( %f )\n", m_fValueRot);
-	//pDebug->Print("移動量 : ( %f )\n", MOVEMENT);
-	//pDebug->Print("半径 : ( %f )\n", m_fRadius);
-	//pDebug->Print("回転速度 : ( %f )\n", SPEED);
-	//pDebug->Print("回転減衰 : ( %f )\n", SPEED_INERTIA);
+#ifdef INFORMATIONENABLE
+	// デバッグコメント
+	pDebug->Print("\n< PLAYER >\n");
+	pDebug->Print("状態 : ( %s )\n", (m_state == STATE_NONE) ? "状態無し" : "通常状態");
+	pDebug->Print("位置 : ( %f %f %f )\n", pos.x, pos.y, pos.z);
+	pDebug->Print("移動ベクトル : ( %f %f %f )\n", m_move.x, m_move.y, m_move.z);
+	pDebug->Print("現在の向き : ( %f )\n", m_rotDest.y);
+	pDebug->Print("回転軸 : ( %f %f %f )\n", m_vecAxis.x, m_vecAxis.y, m_vecAxis.z);
+	pDebug->Print("回転角 : ( %f )\n", m_fValueRot);
+	pDebug->Print("移動量 : ( %f )\n", MOVEMENT);
+	pDebug->Print("半径 : ( %f )\n", m_fRadius);
+	pDebug->Print("回転速度 : ( %f )\n", SPEED);
+	pDebug->Print("回転減衰 : ( %f )\n", SPEED_INERTIA);
+#endif
 
 #ifdef _DEBUG
 	// デバッグライン
@@ -367,8 +370,14 @@ void CBall::Update(void)
 	front.x = sinf(m_rotDest.y) * -15.0f;
 	front.y = 0.0f;
 	front.z = cosf(m_rotDest.y) * -15.0f;
-	CLine::Create(pos + (m_vecAxis * 20.0f), pos + (-m_vecAxis * 20.0f), COLOR_RED);
-	CLine::Create(pos, pos + front, COLOR_LIMEGREEN);
+	CLine::Create(pos + (m_vecAxis * 20.0f), pos + (-m_vecAxis * 20.0f), COLOR_RED);		// 回転軸
+	CLine::Create(pos, pos + front, COLOR_LIMEGREEN);		// 向き
+
+	D3DXVECTOR3 nor = DEFAULT_VECTOR3;
+	nor.x = sinf(m_rotDest.y + D3DX_PI * 1.0f);
+	nor.z = cosf(m_rotDest.y + D3DX_PI * 1.0f);
+	D3DXVec3Normalize(&nor, &nor);
+	CLine::Create(pos, pos + (nor * 30.0f), COLOR_BLUE);
 #endif
 }
 
@@ -571,7 +580,7 @@ void CBall::SubControll(void)
 	{
 		CSand::Create(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(1.0f, 0.1f, 0.0f), 3.0f);
 	}
-	
+
 	if (pInputKeyboard->GetTrigger(DIK_NUMPAD9) == true)
 	{
 		CManager::GetWind()->RandomRot(D3DX_PI * 0.8f);
@@ -726,13 +735,13 @@ CBall* CBall::Collision(const D3DXVECTOR3 pos, const float fRadius, const CObjec
 						}
 
 						pColl = dynamic_cast<CBall*>(pObj);
-					}
 				}
 			}
 		}
+	}
 
 #endif
-	}
+}
 
 	return nullptr;
 }

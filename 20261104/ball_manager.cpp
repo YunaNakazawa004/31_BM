@@ -23,6 +23,7 @@
 // マクロ定義
 //************************************************************************
 #define ERROR_NUM			(9999)				// 試行回数エラー
+#define FIRST_DIST			(400.0f)			// はじめの距離
 
 //========================================================================
 // 球マネージャークラスの生成処理
@@ -131,16 +132,18 @@ void CBallManager::Update(void)
 		m_pWindLeft->StickControll(CInputJoypad::JOYKEY_LEFTSTICK);
 		m_pWindRight->StickControll(CInputJoypad::JOYKEY_RIGHTSTICK);
 
+		// 距離/向きの計算
+		D3DXVECTOR3 dist = m_pWindLeft->GetPosition() - m_pWindRight->GetPosition();
+		float fDist = D3DXVec3Length(&dist);
 		float rotLeft = m_pWindLeft->GetRotation().y;
 		float rotRight = m_pWindRight->GetRotation().y;
 		float rotSum = rotLeft + rotRight;
 		vecU.x = rotSum * 0.05f;
 
-		pDebug->Print("左の風の向き : ( %f )\n", rotLeft);
-		pDebug->Print("右の風の向き : ( %f )\n", rotRight);
-		pDebug->Print("合計の風の向き : ( %f )\n", rotSum);
-
+		// カメラ設定
 		pCamera->SetVecU(vecU);
+		pCamera->SetViewAngle(45.0f + ((FIRST_DIST - fDist) * -0.02f));
+		pCamera->SetAngle(0.6f + ((FIRST_DIST - fDist) * 0.0001f));
 
 		for (int nCntBall = 0; nCntBall < m_nNumBall; nCntBall++)
 		{
@@ -153,23 +156,88 @@ void CBallManager::Update(void)
 		}
 
 		int nCntColl = 0;		// 当たり判定が完了した数
+		int nTry = 0;			// 試行回数
 
 		// 当たり判定
 		do
 		{
+			nTry++;
+
+			if (nTry > ERROR_NUM)
+			{// 試行回数が多すぎる
+				OutputDebugStringA("! ! ! 当たり判定が完了しませんでした ! ! !\n");
+
+				break;
+			}
+
 			CBall* pBall = m_vpBall.at(nCntColl)->Collision(m_vpBall.at(nCntColl)->GetPosition(), m_fRadius, m_vpBall.at(nCntColl));
 
 			if (pBall != nullptr)
 			{// 当たっていた
 				// 反射する
+				D3DXVECTOR3 pos = m_vpBall.at(nCntColl)->GetPosition();
+				D3DXVECTOR3 posOld = m_vpBall.at(nCntColl)->GetPosOld();
+				D3DXVECTOR3 rot = m_vpBall.at(nCntColl)->GetRotation();
+				D3DXVECTOR3 posColl = pBall->GetPosition();
 				D3DXVECTOR3 rotColl = pBall->GetRotation();
-				D3DXVECTOR3 vecNor = D3DXVECTOR3(sinf(rotColl.y), 0.0f, cosf(rotColl.y));
+
+				// 境界線ベクトル（当たられた球の移動ベクトル）
+				D3DXVECTOR3 vecLine = DEFAULT_VECTOR3;
+				vecLine.x = (posColl.x + (sinf(rotColl.y + D3DX_PI) * m_fRadius)) - (posColl.x + (sinf(rotColl.y) * m_fRadius));
+				vecLine.z = (posColl.z + (sinf(rotColl.y + D3DX_PI) * m_fRadius)) - (posColl.z + (sinf(rotColl.y) * m_fRadius));
+
+				// 始点から現在位置へのベクトル
+				D3DXVECTOR3 vecToPos = DEFAULT_VECTOR3;
+				vecToPos.x = pos.x - (posColl.x + (sinf(rotColl.y) * m_fRadius));
+				vecToPos.y = 0.0f;
+				vecToPos.z = pos.z - (posColl.z + (sinf(rotColl.y) * m_fRadius));
+
+				// 現在の外積
+				float fPosLine = ((vecLine.z * vecToPos.x) - (vecLine.x * vecToPos.z));
+
+				// 移動平面に対する法線
+				D3DXVECTOR3 vecNor = DEFAULT_VECTOR3;
+
+				// 境界線ベクトルの右にいるか左にいるか
+				if (fPosLine < 0.0f)
+				{// 左にいる
+					vecNor.x = sinf(rotColl.y + D3DX_PI * 0.5f);
+					vecNor.z = cosf(rotColl.y + D3DX_PI * 0.5f);
+				}
+				else
+				{// 右にいる
+					vecNor.x = sinf(rotColl.y - D3DX_PI * 0.5f);
+					vecNor.z = cosf(rotColl.y - D3DX_PI * 0.5f);
+				}
+
+				// 正規化
 				D3DXVec3Normalize(&vecNor, &vecNor);
-				D3DXVECTOR3 posOwn = m_vpBall.at(nCntColl)->GetPosition();
-				D3DXVECTOR2 vecRef = D3DXVECTOR2(posOwn.x - pBall->GetPosition().x, posOwn.z - pBall->GetPosition().z);
+
+				// 移動ベクトル
+				D3DXVECTOR3 vecMove = DEFAULT_VECTOR3;
+				vecMove.x = (pos.x) - (posOld.x);
+				vecMove.z = (pos.z) - (posOld.z);
+
+				// 内積
+				float fDot = (-vecMove.x * vecNor.x) + (-vecMove.z * vecNor.z);
+
+				// 反射後の移動ベクトル
+				D3DXVECTOR3 vecMoveRef = DEFAULT_VECTOR3;
+				vecMoveRef.x = vecMove.x + ((vecNor.x * fDot) * 2.0f);
+				vecMoveRef.z = vecMove.z + ((vecNor.z * fDot) * 2.0f);
+
+				// 反射後の回転軸
+				D3DXVECTOR3 vecAxis = D3DXVECTOR3(vecMoveRef.z * 1.5f, 0.0f, -(vecMoveRef.x * 1.5f));
+				D3DXVec3Normalize(&vecAxis, &vecAxis);
+
+				m_vpBall.at(nCntColl)->SetMove(D3DXVECTOR3(vecMoveRef.x * 1.5f, 0.0f, vecMoveRef.z * 1.5f));
+				m_vpBall.at(nCntColl)->SetRotDest(D3DXVECTOR3(0.0f, atan2f(vecMoveRef.x, vecMoveRef.z) + D3DX_PI, 0.0f));
+				m_vpBall.at(nCntColl)->SetVecAxis(vecAxis);
+
+				D3DXVECTOR2 vecRef = D3DXVECTOR2(pos.x - pBall->GetPosition().x, pos.z - pBall->GetPosition().z);
 				D3DXVec2Normalize(&vecRef, &vecRef);
 
-				m_vpBall.at(nCntColl)->SetPosition(D3DXVECTOR3(posOwn.x + (m_fRadius * vecRef.x), posOwn.y, posOwn.z + (m_fRadius * vecRef.y)));
+				m_vpBall.at(nCntColl)->SetPosition(D3DXVECTOR3(posColl.x + ((m_fRadius * 2.0f) * vecRef.x), pos.y, posColl.z + ((m_fRadius * 2.0f) * vecRef.y * 1.1f)));
 
 				nCntColl = 0;		// 最初から当たり判定しなおす
 
@@ -180,6 +248,7 @@ void CBallManager::Update(void)
 
 		} while (nCntColl < m_nNumBall);
 
+		// 2つの風の中心座標
 		m_pos = (m_pWindLeft->GetPosition() + m_pWindRight->GetPosition()) * 0.5f;
 	}
 }
@@ -202,7 +271,7 @@ void CBallManager::Random(const int nValue, const D3DXVECTOR3 center, const floa
 	}
 
 	// ローカル変数
-	D3DXVECTOR3 pos = DEFAULT_VECTOR3;		// 設置する位置
+	D3DXVECTOR3 pos = DEFAULT_VECTOR3;	// 設置する位置
 	float fLengthX = (fRadius * 2.0f);	// 設置できる最大距離（X方向）
 	float fLengthZ = (fRadius * 2.0f);	// 設置できる最大距離（Z方向)
 	int nLoopNum = 0;	// 試行回数
@@ -210,12 +279,12 @@ void CBallManager::Random(const int nValue, const D3DXVECTOR3 center, const floa
 	do
 	{// 必要数設置できるまで繰り返す
 		// 位置を決める
-		pos.x = center.x + (rand() % (int)(fLengthX * 100.0f)) / 100.0f - fRadius;
+		pos.x = center.x + ((float)(rand() % (int)(fLengthX ))) - fRadius;
 		pos.y = center.y;
-		pos.z = center.z + (rand() % (int)(fLengthZ * 100.0f)) / 100.0f - fRadius;
+		pos.z = center.z + ((float)(rand() % (int)(fLengthZ ))) - fRadius;
 
 		// 重なり確認
-		if (CBall::Collision(pos, fRadius, nullptr) == nullptr)
+		if (CBall::Collision(pos, m_fRadius, nullptr) == nullptr)
 		{// ぶつかる距離に球がない
 			// 生成
 			m_vpBall.push_back(CBall::Create(pos, m_fRadius, m_fSpeed, m_fSpeedInertia));

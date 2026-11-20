@@ -23,6 +23,9 @@ BALLSET
 	RADIUS = 20.0
 	SPEED = 0.002
 	INERTIA = 0.01
+	NUM_BALL = 10
+	POS = 0.0 0.0 -8500.0
+	RANGE = 200.0
 END_BALLSET
 
 #---------------------------------------

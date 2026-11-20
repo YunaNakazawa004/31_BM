@@ -119,7 +119,10 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 				std::string pModelFile = "";			// モデルファイル名
 				float fRadius = 0.0f;					// 半径
 				float fSpeed = 0.0f, fInertia = 0.0f;	// 回転速度、回転減衰
-
+				int nNumBall = 0;						// 球の数
+				D3DXVECTOR3 pos = DEFAULT_VECTOR3;		// 位置
+				float fRange = 0.0f;					// 範囲
+				
 				file >> line;					// 次の文字
 
 				if (line.find("MODELFILE") != std::string::npos)
@@ -153,11 +156,38 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 
 					file >> line;				// 次の文字
 				}
+				
+				if (line.find("NUM_BALL") != std::string::npos)
+				{// 球の数
+					file >> line;				// =
+					file >> nNumBall;			// 球の数
+
+					file >> line;				// 次の文字
+				}
+				
+				if (line.find("POS") != std::string::npos)
+				{// 位置
+					file >> line;				// =
+					file >> pos.x;				// 位置
+					file >> pos.y;				// 位置
+					file >> pos.z;				// 位置
+
+					file >> line;				// 次の文字
+				}
+				
+				if (line.find("RANGE") != std::string::npos)
+				{// 範囲
+					file >> line;				// =
+					file >> fRange;				// 範囲
+
+					file >> line;				// 次の文字
+				}
 
 				if (line.find("END_BALLSET") != std::string::npos)
 				{// 球設定を終わる
 					CBall::Load(pModelFile.c_str());
 					pObject = CBallManager::Create(fRadius, fSpeed, fInertia);
+					dynamic_cast<CBallManager*>(pObject)->Random(nNumBall, pos, fRange);
 
 					continue;
 				}

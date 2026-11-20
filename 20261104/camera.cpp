@@ -38,6 +38,7 @@
 #define AUTO_ROT				(D3DXVECTOR3(0.005f, 0.005f, 0.005f))	// 自動回転移動量
 #define AUTOROTATE_COUNT		(180)									// 回り込みまでのカウント
 #define DEFAULT_VIEW_ANGLE		(45.0f)									// 規定の視野角
+#define INERTIA_ANGLE			(0.4f)									// 上下移動の角度の慣性
 #define INERTIA_VECU			(0.05f)									// 上方向ベクトルの慣性
 #define INERTIA_VIEW_ANGLE		(0.05f)									// 視野角の慣性
 #define INERTIA_POSR			(0.3f)									// 注視点の慣性
@@ -64,6 +65,7 @@ CCamera::CCamera()
 	m_vecUDest = DEFAULT_VECTOR3;
 	m_rot = DEFAULT_VECTOR3;
 	m_fAngle = 0.0f;
+	m_fAngleDest = 0.0f;
 	m_fDistance = 0.0f;
 	m_fRDistance = 0.0f;
 	m_fViewAngle = 0.0f;
@@ -101,6 +103,7 @@ HRESULT CCamera::Init(void)
 	float fDistXZ = D3DXVec2Length(&distXZ);
 
 	m_fAngle = atan2f(dist.y, fDistXZ);
+	m_fAngleDest = atan2f(dist.y, fDistXZ);
 	m_fDistance = D3DXVec3Length(&dist);
 	m_fRDistance = 0.0f;
 	m_fViewAngle = DEFAULT_VIEW_ANGLE;
@@ -674,11 +677,15 @@ void CCamera::Update(void)
 	}
 
 	if (m_fMoveVA != 0.0f)
-	{// 視野角
+	{// 視野角の慣性
 		m_fViewAngle += (m_fMoveVA - m_fViewAngle) * INERTIA_VIEW_ANGLE;
 	}
 
+	// 上方向ベクトルの慣性
 	m_vecU += (m_vecUDest - m_vecU) * INERTIA_VECU;
+
+	// 上下移動の角度の慣性
+	m_fAngle += (m_fAngleDest - m_fAngle) * INERTIA_ANGLE;
 
 	// オフセットを震わせる
 	m_posVOff.x *= -1.0f;
@@ -754,6 +761,24 @@ void CCamera::SetPosition(D3DXVECTOR3 posV, D3DXVECTOR3 posR, D3DXVECTOR3 rot, T
 
 	m_fAngle = atan2f(dist.y, fDistXZ);
 	m_fDistance = D3DXVec3Length(&dist);
+}
+
+//=============================================================================
+// 上下移動の角度の設定処理
+//=============================================================================
+void CCamera::SetAngle(float fAngle)
+{
+	m_fAngleDest = fAngle;
+
+	if (m_fAngleDest > D3DX_PI * 0.4f)
+	{// 上の制限
+		m_fAngleDest = D3DX_PI * 0.4f;
+	}
+
+	if (m_fAngleDest < -D3DX_PI * 0.0f)
+	{// 下の制限
+		m_fAngleDest = -D3DX_PI * 0.0f;
+	}
 }
 
 //=============================================================================
