@@ -12,6 +12,7 @@
 #include "wind.h"
 #include "field.h"
 #include "wallMM.h"
+#include "map_object.h"
 
 #include <iostream>
 #include <fstream>
@@ -261,6 +262,102 @@ CObject* CFile::SetObject(const char* pFilename, const CObject::TYPE type)
 					CWind::Load(pModelFile.c_str());
 					pObject = CWind::Create(pos, vec, fStrength, fAffect, nBird);
 
+					continue;
+				}
+			}
+			
+			if (line.find("OBJECTSET") != std::string::npos && type == CObject::TYPE_MAPOBJECT)
+			{// 配置オブジェクトを設定
+				CMapObject* pMapObject = CManager::GetMapObject();
+				int nNumModelFile = 0;					// モデルファイルの数
+				std::string pModelFile = "";			// モデルファイル名
+				int nNumObject = 0;						// 配置オブジェクトの数
+				D3DXVECTOR3 pos = DEFAULT_VECTOR3;		// 初期位置
+				D3DXVECTOR3 rot = DEFAULT_VECTOR3;		// 初期向き
+				int nIdxModel = -1;						// モデルのインデックス
+
+				file >> line;					// 次の文字
+
+				if (line.find("NUM_MODELFILE") != std::string::npos)
+				{// モデルファイル数
+					file >> line;				// =
+					file >> nNumModelFile;		// モデルファイル数
+
+					file >> line;				// 次の文字
+
+					for (int nCntFile = 0; nCntFile < nNumModelFile; nCntFile++)
+					{
+						if (line.find("MODELFILE") != std::string::npos)
+						{// モデルファイル
+							file >> line;				// =
+							file >> pModelFile;			// モデルファイル名
+
+							pMapObject->Load(pModelFile.c_str());
+
+							file >> line;				// 次の文字
+						}
+					}
+				}
+
+				if (line.find("NUM_OBJECT") != std::string::npos)
+				{// 配置オブジェクト数
+					file >> line;				// =
+					file >> nNumObject;			// 配置オブジェクト数
+
+					file >> line;				// 次の文字
+
+					for (int nCntFile = 0; nCntFile < nNumModelFile; nCntFile++)
+					{
+						if (line.find("OBJECT") != std::string::npos)
+						{// 配置オブジェクト
+							file >> line;				// 次の文字
+						}
+
+						if (line.find("POS") != std::string::npos)
+						{// 初期位置
+							file >> line;				// =
+							file >> pos.x;				// 位置
+							file >> pos.y;				// 位置
+							file >> pos.z;				// 位置
+
+							file >> line;				// 次の文字
+						}
+
+						if (line.find("ROT") != std::string::npos)
+						{// 初期向き
+							file >> line;				// =
+							file >> rot.x;				// 向き
+							file >> rot.y;				// 向き
+							file >> rot.z;				// 向き
+
+							rot.x = (rot.x / 180.0f) * D3DX_PI;
+							rot.y = (rot.y / 180.0f) * D3DX_PI;
+							rot.z = (rot.z / 180.0f) * D3DX_PI;
+
+							file >> line;				// 次の文字
+						}
+
+						if (line.find("INDEX") != std::string::npos)
+						{// モデルのインデックス
+							file >> line;				// =
+							file >> nIdxModel;			// モデルのインデックス
+
+							file >> line;				// 次の文字
+						}
+
+
+						if (line.find("END_OBJECT") != std::string::npos)
+						{// 配置オブジェクト
+							// 生成
+							pMapObject->Create(pos, rot, nIdxModel, nIdxModel);
+
+							file >> line;				// 次の文字
+						}
+					}
+				}
+
+				if (line.find("END_OBJECTSET") != std::string::npos)
+				{// 配置オブジェクト設定を終わる
 					continue;
 				}
 			}

@@ -25,10 +25,12 @@ public:
 	CObjectX(const int nPriority);
 	virtual ~CObjectX();
 
-	static CObjectX* Create(const D3DXVECTOR3 pos, const CObject::TYPE type, const char* pFilename,
+	static CObjectX* Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot, const CObject::TYPE type, const char* pFilename,
 		const int nPriority = PRIORITY_2);
+	static CObjectX* Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot, const CObject::TYPE type,
+		const int nIdxModel, const int nPriority = PRIORITY_2);
 	HRESULT Init(void) { return S_OK; }
-	HRESULT Init(const D3DXVECTOR3 pos);
+	HRESULT Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot);
 	void Uninit(void);
 	void Update(void);
 	void Draw(void);

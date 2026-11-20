@@ -775,9 +775,9 @@ void CCamera::SetAngle(float fAngle)
 		m_fAngleDest = D3DX_PI * 0.4f;
 	}
 
-	if (m_fAngleDest < -D3DX_PI * 0.0f)
+	if (m_fAngleDest < D3DX_PI * 0.15f)
 	{// ‰º‚Ì§ŒÀ
-		m_fAngleDest = -D3DX_PI * 0.0f;
+		m_fAngleDest = D3DX_PI * 0.15f;
 	}
 }
 

@@ -137,7 +137,7 @@ HRESULT CShadowSt::Init(const D3DXVECTOR3 pos, const int type)
 	VERTEX_2D* pVtx;
 
 	// ‰Šú‰»ˆ—
-	CObjectX::Init(pos);
+	CObjectX::Init(pos, DEFAULT_VECTOR3);
 
 	m_type = type;
 

@@ -21,10 +21,13 @@
 #define MOVEMENT				(D3DXVECTOR3(0.6f, 0.6f, 0.6f))			// 移動量
 #define ROT						(D3DXVECTOR3(0.05f, 0.05f, 0.05f))		// 向き移動量
 
+#define MOVEENAVLE		// 動かせるかどうか
+#undef MOVEENAVLE
+
 //========================================================================
 // オブジェクトXクラスの生成処理
 //========================================================================
-CObjectX* CObjectX::Create(const D3DXVECTOR3 pos, const CObject::TYPE type, const char* pFilename, const int nPriority)
+CObjectX* CObjectX::Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot, const CObject::TYPE type, const char* pFilename, const int nPriority)
 {
 #ifndef LIST
 	if (CObject::GetNumAll() >= MAX_OBJECT)
@@ -51,7 +54,54 @@ CObjectX* CObjectX::Create(const D3DXVECTOR3 pos, const CObject::TYPE type, cons
 		pObjectX->BindModel(pObjectX->m_nIdxModel);
 
 		// 初期化処理
-		if (FAILED(pObjectX->Init(pos)))
+		if (FAILED(pObjectX->Init(pos, rot)))
+		{// もし失敗した場合
+			OutputDebugStringA("! ! ! オブジェクトXの初期化に失敗しました ! ! !\n");
+
+			return nullptr;
+		}
+
+		// 種類を設定
+		pObjectX->SetType(type);
+
+		return pObjectX;
+	}
+
+	OutputDebugStringA("! ! ! オブジェクトXの生成に失敗しました ! ! !\n");
+
+	return nullptr;
+}
+
+//========================================================================
+// オブジェクトXクラスの生成処理(オーバーロード)
+//========================================================================
+CObjectX* CObjectX::Create(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot, const CObject::TYPE type,
+	const int nIdxModel, const int nPriority)
+{
+#ifndef LIST
+	if (CObject::GetNumAll() >= MAX_OBJECT)
+	{// 最大数のオブジェクトが存在する
+		OutputDebugStringA("! ! ! オブジェクトの最大数に達しています ! ! !\n");
+
+		return nullptr;
+	}
+#endif
+
+	CObjectX* pObjectX = nullptr;
+
+	if (pObjectX == nullptr)
+	{// NULLチェック
+		// オブジェクトXの生成
+		pObjectX = new CObjectX(nPriority);
+	}
+
+	if (pObjectX != nullptr)
+	{// NULLチェック
+		// モデルファイル設定;
+		pObjectX->BindModel(nIdxModel);
+
+		// 初期化処理
+		if (FAILED(pObjectX->Init(pos,rot)))
 		{// もし失敗した場合
 			OutputDebugStringA("! ! ! オブジェクトXの初期化に失敗しました ! ! !\n");
 
@@ -97,7 +147,7 @@ CObjectX::~CObjectX()
 //========================================================================
 // オブジェクトXクラスの初期化処理(オーバーロード)
 //========================================================================
-HRESULT CObjectX::Init(const D3DXVECTOR3 pos)
+HRESULT CObjectX::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 rot)
 {
 	// ローカル変数宣言
 	CRenderer* pRenderer = CManager::GetRenderer();			// レンダラーへのポインタ
@@ -111,6 +161,7 @@ HRESULT CObjectX::Init(const D3DXVECTOR3 pos)
 
 	// モデルの情報の初期化
 	m_pos = pos;
+	m_rot = rot;
 	m_scale = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 
 	// 最大値最小値の初期化
@@ -211,6 +262,7 @@ void CObjectX::Uninit(void)
 //========================================================================
 void CObjectX::Update(void)
 {
+#ifdef MOVEENAVLE
 	// ローカル変数
 	CCamera* pCamera = CManager::GetCamera();							// カメラの取得
 	CInputKeyboard* pInputKeyboard = CManager::GetInputKeyboard();		// キーボード入力の取得
@@ -295,6 +347,7 @@ void CObjectX::Update(void)
 	// 位置/向きを適用
 	SetPosition(pos);
 	SetRotation(rot);
+#endif
 }
 
 //========================================================================
@@ -733,7 +786,7 @@ bool CObjectX::Collision(D3DXVECTOR3* pPos, D3DXVECTOR3* pPosOld, D3DXVECTOR3* p
 bool CObjectX::Reflect(D3DXVECTOR3* pPos, D3DXVECTOR3* pPosOld, D3DXVECTOR3* pMove, D3DXVECTOR3* pRotDest,
 	D3DXVECTOR3* pVecAxis, float* pValueRot, const float fRadius)
 {
-	bool bLand = false;		// 着地しているか
+	bool bRef = false;	// 反射しているか
 	int nCntLand = 0;	// 辺の内側に入った数(4回入っていれば、オブジェクトの内側にいる)
 
 	for (int nCnt = 0; nCnt < 4; nCnt++)
@@ -844,6 +897,8 @@ bool CObjectX::Reflect(D3DXVECTOR3* pPos, D3DXVECTOR3* pPosOld, D3DXVECTOR3* pMo
 					pVecAxis->x = pMove->z;
 					pVecAxis->z = -pMove->x;
 					D3DXVec3Normalize(pVecAxis, pVecAxis);
+
+					bRef = true;
 				}
 			}
 		}
@@ -862,11 +917,10 @@ bool CObjectX::Reflect(D3DXVECTOR3* pPos, D3DXVECTOR3* pPosOld, D3DXVECTOR3* pMo
 				if ((m_pos.y + m_VtxMax.y <= pPosOld->y) &&
 					(m_pos.y + m_VtxMax.y >= pPos->y))
 				{// 上からの当たり判定
-					bLand = true;
 				}
 			}
 		}
 	}
 
-	return bLand;
+	return bRef;
 }

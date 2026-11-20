@@ -135,7 +135,7 @@ CEffectX::~CEffectX()
 HRESULT CEffectX::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 move, const float fSpeed, const bool bSpeedInertia,
 	const int nLife, const D3DXVECTOR3 scale, const float fAddRadius, const bool bGravity)
 {
-	if (FAILED(CObjectX::Init(pos)))
+	if (FAILED(CObjectX::Init(pos, DEFAULT_VECTOR3)))
 	{// Xエフェクトの初期化に失敗した場合
 		OutputDebugStringA("! ! ! Xエフェクトの初期化に失敗しました ! ! !\n");
 

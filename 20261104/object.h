@@ -67,6 +67,7 @@ public:
 		TYPE_MESHRING,			// メッシュリング
 		TYPE_MESHORBIT,			// メッシュオービット
 		TYPE_LINE,				// 線
+		TYPE_MAPOBJECT,			// 配置オブジェクト
 		TYPE_SCORE,				// スコア
 		TYPE_RANKINGSCORE,		// ランキングスコア
 		TYPE_UI,				// UI

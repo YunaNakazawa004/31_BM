@@ -24,7 +24,7 @@ BALLSET
 	SPEED = 0.002
 	INERTIA = 0.01
 	NUM_BALL = 10
-	POS = 0.0 0.0 -8500.0
+	POS = 0.0 0.0 -9000.0
 	RANGE = 200.0
 END_BALLSET
 
@@ -38,5 +38,23 @@ WINDSET
 	STRENGTH = 5.0
 	AFFECT = 0.8
 END_WINDSET
+
+#---------------------------------------
+# オブジェクト
+#---------------------------------------
+OBJECTSET
+	NUM_MODELFILE = 1
+	
+	MODELFILE = data\\MODEL\\rock.x
+	
+	NUM_OBJECT = 1
+		
+	OBJECT
+		POS = 0.0 0.0 -8000.0
+		ROT = 0.0 45.0 0.0
+		INDEX = 0
+	END_OBJECT
+
+END_OBJECTSET
 
 END_SCRIPT		# 消さない

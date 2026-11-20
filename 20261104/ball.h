@@ -33,6 +33,7 @@ public:
 	{
 		STATE_NONE = 0,		// èÛë‘Ç»Çµ
 		STATE_NORMAL,		// í èÌèÛë‘
+		STATE_REFLECT,		// îΩéÀèÛë‘
 		STATE_MAX
 	}STATE;
 
@@ -61,6 +62,8 @@ public:
 	float GetValueRot(void) { return m_fValueRot; }
 	void SetRotDest(const D3DXVECTOR3 rotDest) { m_rotDest = rotDest; }
 	D3DXVECTOR3 GetRotDest(void) { return m_rotDest; }
+	void SetState(const STATE state);
+	STATE GetState(void) { return m_state; }
 
 	bool Movement(void);
 	void SubControll(void);

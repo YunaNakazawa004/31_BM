@@ -139,7 +139,7 @@ CWind::~CWind()
 HRESULT CWind::Init(const D3DXVECTOR3 pos, const D3DXVECTOR3 vec, const float fStrength, const float fAffect, const bool bBird)
 {
 	// ‰Šú‰»ˆ—
-	CObjectX::Init(pos);
+	CObjectX::Init(pos, DEFAULT_VECTOR3);
 
 	// •—‚Ì‰Šú‰»
 	m_move = DEFAULT_VECTOR3;

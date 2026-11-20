@@ -18,6 +18,7 @@
 #include "camera.h"
 #include "ball.h"
 #include "wind.h"
+#include "map_object.h"
 
 //************************************************************************
 // マクロ定義
@@ -142,11 +143,16 @@ void CBallManager::Update(void)
 
 		// カメラ設定
 		pCamera->SetVecU(vecU);
-		pCamera->SetViewAngle(45.0f + ((FIRST_DIST - fDist) * -0.02f));
-		pCamera->SetAngle(0.6f + ((FIRST_DIST - fDist) * 0.0001f));
+		pCamera->SetViewAngle(45.0f + ((FIRST_DIST - fDist) * -0.01f));
+		pCamera->SetAngle(0.5f + ((FIRST_DIST - fDist) * 0.0007f));
 
 		for (int nCntBall = 0; nCntBall < m_nNumBall; nCntBall++)
 		{
+			if (m_vpBall.at(nCntBall)->GetState() == CBall::STATE_REFLECT)
+			{// 反射状態ならスキップ
+				continue;
+			}
+
 			// 全体の風の影響
 			CManager::GetWind()->WindAffect(m_vpBall.at(nCntBall));
 
@@ -170,14 +176,32 @@ void CBallManager::Update(void)
 				break;
 			}
 
+			D3DXVECTOR3 pos = m_vpBall.at(nCntColl)->GetPosition();
+			D3DXVECTOR3 posOld = m_vpBall.at(nCntColl)->GetPosOld();
+			D3DXVECTOR3 rot = m_vpBall.at(nCntColl)->GetRotation();
+			D3DXVECTOR3 rotDest = m_vpBall.at(nCntColl)->GetRotDest();
+			D3DXVECTOR3 move = m_vpBall.at(nCntColl)->GetVelocity();
+			D3DXVECTOR3 vecAxis = m_vpBall.at(nCntColl)->GetVecAxis();
+			float fValueRot = m_vpBall.at(nCntColl)->GetValueRot();
+
+			if (CManager::GetMapObject()->Collision(&pos, &posOld, &move, &rotDest, &vecAxis, &fValueRot, m_fRadius) == true)
+			{// 配置オブジェクトとの当たり判定
+				// 値を設定
+				m_vpBall.at(nCntColl)->SetPosition(pos);
+				m_vpBall.at(nCntColl)->SetMove(move);
+				m_vpBall.at(nCntColl)->SetRotDest(rotDest);
+				m_vpBall.at(nCntColl)->SetVecAxis(vecAxis);
+				m_vpBall.at(nCntColl)->SetValueRot(fValueRot);
+
+				// 状態を設定
+				m_vpBall.at(nCntColl)->SetState(CBall::STATE_REFLECT);
+			}
+
 			CBall* pBall = m_vpBall.at(nCntColl)->Collision(m_vpBall.at(nCntColl)->GetPosition(), m_fRadius, m_vpBall.at(nCntColl));
 
 			if (pBall != nullptr)
 			{// 当たっていた
 				// 反射する
-				D3DXVECTOR3 pos = m_vpBall.at(nCntColl)->GetPosition();
-				D3DXVECTOR3 posOld = m_vpBall.at(nCntColl)->GetPosOld();
-				D3DXVECTOR3 rot = m_vpBall.at(nCntColl)->GetRotation();
 				D3DXVECTOR3 posColl = pBall->GetPosition();
 				D3DXVECTOR3 rotColl = pBall->GetRotation();
 
@@ -238,6 +262,9 @@ void CBallManager::Update(void)
 				D3DXVec2Normalize(&vecRef, &vecRef);
 
 				m_vpBall.at(nCntColl)->SetPosition(D3DXVECTOR3(posColl.x + ((m_fRadius * 2.0f) * vecRef.x), pos.y, posColl.z + ((m_fRadius * 2.0f) * vecRef.y * 1.1f)));
+
+				// 状態を設定
+				m_vpBall.at(nCntColl)->SetState(CBall::STATE_REFLECT);
 
 				nCntColl = 0;		// 最初から当たり判定しなおす
 
@@ -304,11 +331,11 @@ void CBallManager::Random(const int nValue, const D3DXVECTOR3 center, const floa
 	// 風の生成
 	if (m_pWindLeft == nullptr)
 	{// NULLチェック
-		m_pWindLeft = CWind::Create(D3DXVECTOR3(center.x - 200.0f, center.y, center.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 3.0f, 0.4f, true);
+		m_pWindLeft = CWind::Create(D3DXVECTOR3(center.x - 200.0f, center.y, center.z - 200.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 3.0f, 0.4f, true);
 	}
 
 	if (m_pWindRight == nullptr)
 	{// NULLチェック
-		m_pWindRight = CWind::Create(D3DXVECTOR3(center.x + 200.0f, center.y, center.z), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 3.0f, 0.4f, true);
+		m_pWindRight = CWind::Create(D3DXVECTOR3(center.x + 200.0f, center.y, center.z - 200.0f), D3DXVECTOR3(0.0f, 0.0f, -1.0f), 3.0f, 0.4f, true);
 	}
 }

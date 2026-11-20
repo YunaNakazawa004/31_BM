@@ -35,6 +35,7 @@ class CXModel;
 class CEffectBatching;
 class CBallManager;
 class CWind;
+class CMapObject;
 class CTcpClient;
 
 //************************************************************************
@@ -65,6 +66,7 @@ public:
 	static CEffectBatching* GetEffectBatching(void) { return m_pEffectBatching; }
 	static CBallManager* GetBallManager(void) { return m_pBallManager; }
 	static CWind* GetWind(void) { return m_pWind; }
+	static CMapObject* GetMapObject(void) { return m_pMapObject; }
 	static CTcpClient* GetTcpClient(void) { return m_pTcpClient; }
 
 	static int GetFPS(void) { return m_nCountFPS; }
@@ -97,6 +99,7 @@ private:
 	static CEffectBatching* m_pEffectBatching;		// バッチ描画エフェクトのインスタンス
 	static CBallManager* m_pBallManager;			// ボールマネージャーのインスタンス
 	static CWind* m_pWind;							// 風のインスタンス
+	static CMapObject* m_pMapObject;				// 配置オブジェクトのインスタンス
 	static CTcpClient* m_pTcpClient;				// TCP送受信のインスタンス
 
 	static int m_nCountFPS;			// FPSカウンター

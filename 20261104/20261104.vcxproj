@@ -162,6 +162,7 @@
     <ClCompile Include="line.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="manager.cpp" />
+    <ClCompile Include="map_object.cpp" />
     <ClCompile Include="meshorbit.cpp" />
     <ClCompile Include="meshring.cpp" />
     <ClCompile Include="meshwallM.cpp" />
@@ -209,6 +210,7 @@
     <ClInclude Include="line.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="manager.h" />
+    <ClInclude Include="map_object.h" />
     <ClInclude Include="meshorbit.h" />
     <ClInclude Include="meshring.h" />
     <ClInclude Include="meshwallM.h" />

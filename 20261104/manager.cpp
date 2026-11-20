@@ -33,6 +33,7 @@
 #include "tcp_client.h"
 #include "protocol_ranking.h"
 #include "shadowSt.h"
+#include "map_object.h"
 
 #include "effect2D.h"
 #include "effect3D.h"
@@ -56,6 +57,7 @@ CXModel* CManager::m_pXModel = nullptr;					// モデル管理のインスタンス
 CEffectBatching* CManager::m_pEffectBatching = nullptr;	// バッチ描画エフェクトのインスタンス
 CBallManager* CManager::m_pBallManager = nullptr;		// ボールマネージャーのインスタンス
 CWind* CManager::m_pWind = nullptr;						// 風のインスタンス
+CMapObject* CManager::m_pMapObject = nullptr;			// 配置オブジェクトのインスタンス
 CTcpClient* CManager::m_pTcpClient = nullptr;			// TCP送受信のインスタンス
 int CManager::m_nCountFPS = 0;							// FPSカウンター
 bool CManager::m_bPause = false;						// ポーズするかしないか
@@ -83,6 +85,7 @@ CManager::CManager()
 	m_pEffectBatching = nullptr;
 	m_pBallManager = nullptr;
 	m_pWind = nullptr;
+	m_pMapObject = nullptr;
 	m_pTcpClient = nullptr;
 	m_nCountFPS = 0;
 	m_bPause = false;
@@ -215,6 +218,18 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 			return E_FAIL;
 		}
 	}
+	
+	// 配置オブジェクトの生成
+	if (SUCCEEDED(CreateInstance(&m_pMapObject)))
+	{// 配置オブジェクトの生成に成功
+		// 初期化処理
+		if (FAILED(m_pMapObject->Init()))
+		{// 初期化処理が失敗した場合
+			OutputDebugStringA("! ! ! 配置オブジェクトの初期化に失敗しました ! ! !\n");
+
+			return E_FAIL;
+		}
+	}
 
 	// テクスチャの生成
 	if (SUCCEEDED(CreateInstance(&m_pTexture)))
@@ -287,9 +302,6 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 		}
 	}
 
-	// 岩
-	CObjectX::Create(D3DXVECTOR3(0.0f, 0.0f, -8000.0f), CObject::TYPE_NONE, "data\\MODEL\\rock.x");
-
 	// ボールの生成
 	if (m_pBallManager == nullptr)
 	{// NULLチェック
@@ -302,6 +314,9 @@ HRESULT CManager::Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 			return E_FAIL;
 		}
 	}
+
+	// 配置オブジェクトの読み込み
+	CFile::SetObject("data\\object.txt", CObject::TYPE_MAPOBJECT);
 
 	// FPSカウンタを初期化
 	m_nCountFPS = 0;
@@ -372,6 +387,19 @@ void CManager::Uninit(void)
 		m_pTexture = nullptr;
 	}
 
+	// 配置オブジェクトの破棄
+	if (m_pMapObject != nullptr)
+	{// NULLチェック
+		// モデルを破棄
+		m_pMapObject->Unload();
+
+		// 終了処理
+		m_pMapObject->Uninit();
+
+		delete m_pMapObject;
+		m_pMapObject = nullptr;
+	}
+	
 	// デバッグ表示の破棄
 	if (m_pDebugProc != nullptr)
 	{// NULLチェック
@@ -489,6 +517,12 @@ void CManager::Update(void)
 			// レンダラーの更新
 			m_pRenderer->Update();
 		}
+		
+		if (m_pMapObject != nullptr)
+		{// NULLチェック
+			// 配置オブジェクトの更新
+			m_pMapObject->Update();
+		}
 
 		if (m_pEffectBatching != nullptr)
 		{// NULLチェック
@@ -598,6 +632,7 @@ void CManager::Reset(void)
 	// ゲームオブジェクトの破棄
 	CObject::ReleaseAll();
 	m_pEffectBatching->Reset();
+	m_pMapObject->Reset();
 
 	m_pBallManager = nullptr;
 	m_pWind = nullptr;
@@ -629,6 +664,9 @@ void CManager::Reset(void)
 			OutputDebugStringA("! ! ! ボールマネージャーの生成に失敗しました ! ! !\n");
 		}
 	}
+
+	// 配置オブジェクトの読み込み
+	CFile::SetObject("data\\object.txt", CObject::TYPE_MAPOBJECT);
 }
 
 //========================================================================

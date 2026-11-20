@@ -26,6 +26,7 @@
 #include "particleX.h"
 #include "sand.h"
 #include "shadowSt.h"
+#include "map_object.h"
 
 //************************************************************************
 // マクロ定義
@@ -46,7 +47,7 @@
 #define DEFAULT_SIZE			(10.0f)									// 規定のモデルサイズ
 #define MAX_SIZE				(50.0f)									// 最大サイズ
 #define MIN_SIZE				(5.0f)									// 最小サイズ
-#define REFLECT_INTERVAL		(30)									// 反射後の移動インターバル
+#define REFLECT_INTERVAL		(60)									// 反射後の移動インターバル
 
 #define INFORMATIONENABLE		// 球の情報をコメント化
 #undef INFORMATIONENABLE
@@ -171,7 +172,7 @@ HRESULT CBall::Init(const D3DXVECTOR3 pos, const float fRadius,
 	const float fSpeed, const float fSpeedInertia)
 {
 	// 初期化処理
-	CObjectX::Init(pos);
+	CObjectX::Init(pos, DEFAULT_VECTOR3);
 
 	// 球の初期化
 	m_posOld = DEFAULT_VECTOR3;
@@ -238,6 +239,17 @@ void CBall::Update(void)
 	{
 	case STATE_NONE:		// 状態無し
 		break;
+
+	case STATE_REFLECT:		// 反射状態
+		m_nCounterState--;
+
+		if (m_nCounterState < 0)
+		{// 一定時間経過
+			m_nCounterState = 0;
+			m_state = STATE_NORMAL;
+		}
+
+		break;
 	}
 
 #ifdef _DEBUG
@@ -285,9 +297,6 @@ void CBall::Update(void)
 		// マルチターゲットレンダリングOFF
 		CManager::GetMTRenderer()->SetMultiRendering(false);
 	}
-
-	// メッシュウォールとの当たり判定
-	CWallMM::CollisionAll(&pos, &m_posOld, m_fRadius);
 
 	// 移動制限
 	if (pos.x + m_fRadius > CManager::GetLimit().x)
@@ -436,6 +445,25 @@ D3DXMATRIX CBall::MatrixCalc(void)
 	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTrans);
 
 	return mtxWorld;
+}
+
+//========================================================================
+// 状態を設定
+//========================================================================
+void CBall::SetState(const STATE state)
+{
+	if (m_state == state)
+	{// 同じものは設定しない
+		return;
+	}
+
+	m_state = state;
+
+	if (m_state == STATE_REFLECT)
+	{// 反射状態
+		m_nCounterState = REFLECT_INTERVAL;
+		SetRotation(m_rotDest);
+	}
 }
 
 //========================================================================
